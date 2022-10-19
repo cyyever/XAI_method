@@ -15,6 +15,7 @@ setuptools.setup(
         "cyy_ml_if",
         "cyy_ml_if/hydra",
         "cyy_ml_if/lean_hydra",
+        "cyy_ml_if/tracin",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
