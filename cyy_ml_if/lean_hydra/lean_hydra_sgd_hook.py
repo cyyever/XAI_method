@@ -29,7 +29,7 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
             return
 
         counter = TimeCounter()
-        if self.__momentum is None:
+        if self.__mom_product is None:
             self.__mom_product = torch.zeros(self._training_set_size).to(
                 self._contributions.device, non_blocking=True
             )
