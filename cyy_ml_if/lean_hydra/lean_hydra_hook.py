@@ -1,6 +1,5 @@
 import json
 import os
-import pickle
 
 import torch
 from cyy_naive_lib.log import get_logger
@@ -20,9 +19,7 @@ class LeanHyDRAHook(Hook):
         self._training_set_size = None
         self.sample_gradient_hook.set_result_transform(self._gradient_dot_product)
 
-    def _gradient_dot_product(
-        self, sample_index, result, input_tensor, input_feature, target
-    ):
+    def _gradient_dot_product(self, result, **kwargs):
         return self.__test_gradient.dot(result.cpu()).item()
 
     @property
@@ -43,11 +40,6 @@ class LeanHyDRAHook(Hook):
             self._computed_indices = set(range(self._training_set_size))
         else:
             get_logger().info("only compute %s indices", len(self._computed_indices))
-        # with open(
-        #     os.path.join(self.__get_save_dir(trainer), "tracking_indices.json"),
-        #     mode="wb",
-        # ) as f:
-        #     pickle.dump(self._computed_indices, f)
         self._contributions = torch.zeros(self._training_set_size).to(
             trainer.device, non_blocking=True
         )
@@ -56,8 +48,8 @@ class LeanHyDRAHook(Hook):
         self._computed_indices = set(computed_indices)
         self.sample_gradient_hook.set_computed_indices(computed_indices)
 
-    def _after_execute(self, **kwargs):
-        trainer = kwargs["model_executor"]
+    def _after_execute(self, model_executor, **kwargs):
+        trainer = model_executor
         assert self._contributions.shape[0] == self._training_set_size
 
         with open(
@@ -67,8 +59,4 @@ class LeanHyDRAHook(Hook):
         ) as f:
             contributions = self._contributions.cpu().tolist()
             json.dump({idx: contributions[idx] for idx in self._computed_indices}, f)
-        # with open(
-        #     os.path.join(self.__get_save_dir(trainer), "training_set_size"), "wb"
-        # ) as f:
-        #     pickle.dump(self._training_set_size, f)
         self.sample_gradient_hook.release_queue()
