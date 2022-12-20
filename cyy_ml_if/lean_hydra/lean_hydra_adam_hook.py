@@ -13,26 +13,19 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         self.__second_average_product = None
         self.__step = None
 
-    def _before_batch(self, **kwargs):
-        trainer = kwargs["model_executor"]
+    def _before_execute(self, **kwargs):
+        super()._before_execute(**kwargs)
+        device = self._contributions.device
+        self.__gradient_product = torch.zeros(self._training_set_size).to(device)
+        self.__first_average_product = torch.zeros(self._training_set_size).to(device)
+        self.__second_average_product = torch.zeros(self._training_set_size).to(device)
+        self._test_gradient = self._test_gradient.to(device)
+        self.__step = 0
 
-        optimizer = trainer.get_optimizer()
+    def _before_batch(self, **kwargs):
+        optimizer = self._get_optimizer(**kwargs)
+
         assert len(optimizer.param_groups) == 1
-        if self._contributions is None:
-            self._contributions = torch.zeros(self._training_set_size).to(
-                trainer.device
-            )
-            self.__gradient_product = torch.zeros(self._training_set_size).to(
-                trainer.device
-            )
-            self.__first_average_product = torch.zeros(self._training_set_size).to(
-                trainer.device
-            )
-            self.__second_average_product = torch.zeros(self._training_set_size).to(
-                trainer.device
-            )
-            self._test_gradient = self._test_gradient.to(trainer.device)
-            self.__step = 0
         self.__step += 1
 
         cur_learning_rate = trainer.get_data("cur_learning_rates")[0]

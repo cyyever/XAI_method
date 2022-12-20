@@ -38,3 +38,4 @@ class LeanHyDRA:
     def get_contribution(self, **kwargs):
         self._hook.sample_gradient_hook.release_queue()
         return self._hook.contributions
+

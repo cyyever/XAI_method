@@ -12,11 +12,7 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
     __weight_decay = None
 
     def _before_batch(self, **kwargs):
-        if "optimizer" in kwargs:
-            optimizer = kwargs["optimizer"]
-        else:
-            trainer = kwargs["model_executor"]
-            optimizer = trainer.get_optimizer()
+        optimizer = self._get_optimizer(**kwargs)
 
         assert len(optimizer.param_groups) == 1
         self.__momentum = optimizer.param_groups[0]["momentum"]

@@ -27,7 +27,6 @@ class LeanHyDRAHook(Hook):
         return self._contributions
 
     def _before_execute(self, **kwargs):
-        device = get_device()
         if "model_executor" in kwargs:
             model_executor = kwargs["model_executor"]
             trainer = model_executor
@@ -35,6 +34,7 @@ class LeanHyDRAHook(Hook):
             device = trainer.device
         else:
             self._training_set_size = kwargs["training_set_size"]
+            device = get_device()
 
         if not self._computed_indices:
             self._computed_indices = set(range(self._training_set_size))
@@ -43,6 +43,12 @@ class LeanHyDRAHook(Hook):
         self._contributions = torch.zeros(self._training_set_size).to(
             device, non_blocking=True
         )
+
+    def _get_optimizer(self, **kwargs):
+        if "optimizer" in kwargs:
+            return kwargs["optimizer"]
+        trainer = kwargs["model_executor"]
+        return trainer.get_optimizer()
 
     def set_computed_indices(self, computed_indices):
         self._computed_indices = set(computed_indices)
