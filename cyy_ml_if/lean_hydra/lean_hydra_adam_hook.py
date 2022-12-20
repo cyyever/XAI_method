@@ -54,7 +54,10 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
             counter.elapsed_milliseconds(),
         )
 
-    def _after_optimizer_step(self, **kwargs):
+    def _after_optimizer_step(self, step_skipped, **kwargs):
+        if step_skipped:
+            self.sample_gradient_hook.reset_result()
+            return
         trainer = kwargs["model_executor"]
         optimizer = trainer.get_optimizer()
         assert self.__step == list(optimizer.state.values())[0]["step"]

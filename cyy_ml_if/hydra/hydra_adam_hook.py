@@ -1,7 +1,7 @@
 import math
 
 import torch
-from cyy_torch_algorithm.hydra.hydra_hook import HyDRAHook
+from cyy_ml_if.hydra.hydra_hook import HyDRAHook
 from cyy_torch_toolbox.tensor import cat_tensors_to_vector
 
 
@@ -65,10 +65,10 @@ class HyDRAAdamHook(HyDRAHook):
             (optimizer.state[p]["exp_avg_sq"].detach() for p in parameter_seq)
         )
         self.__corrected_first_average = first_average / (
-            1 - (self.__beta1 ** self.__step)
+            1 - (self.__beta1**self.__step)
         )
         self.__corrected_second_average_sqrt = second_average.sqrt() / math.sqrt(
-            1 - (self.__beta2 ** self.__step)
+            1 - (self.__beta2**self.__step)
         )
         self.__eps = optimizer.param_groups[0]["eps"]
         self.__corrected_second_average_sqrt_with_epsilon = (
@@ -124,13 +124,13 @@ class HyDRAAdamHook(HyDRAHook):
                 self._check_overflow_and_underflow(second_average_gradient)
                 corrected_first_average_gradient = self._optional_division(
                     first_average_gradient,
-                    1 - (self.__beta1 ** self.__step),
+                    1 - (self.__beta1**self.__step),
                     epsilon=None,
                 )
                 self._check_overflow_and_underflow(corrected_first_average_gradient)
                 corrected_second_average_gradient = self._optional_division(
                     second_average_gradient,
-                    1 - (self.__beta2 ** self.__step),
+                    1 - (self.__beta2**self.__step),
                     epsilon=None,
                 )
                 self._check_overflow_and_underflow(corrected_second_average_gradient)
