@@ -1,3 +1,4 @@
+from cyy_ml_if.util import optional_addition, optional_multiplication
 from cyy_naive_lib.log import get_logger
 from cyy_naive_lib.time_counter import TimeCounter
 
@@ -18,12 +19,10 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
         momentum = optimizer.param_groups[0]["momentum"]
         lr = optimizer.param_groups[0]["lr"]
         weight_decay = optimizer.param_groups[0]["weight_decay"]
-        if self.__mom_product is None:
-            self.__mom_product = weight_decay * self._contributions
-        else:
-            self.__mom_product = (
-                self.__mom_product * momentum + weight_decay * self._contributions
-            )
+        self.__mom_product = optional_addition(
+            optional_multiplication(self._contributions, weight_decay),
+            optional_multiplication(self.__mom_product, momentum),
+        )
 
         for idx, dot_product in self.sample_gradient_hook.result_dict.items():
             self.__mom_product[idx] += (
