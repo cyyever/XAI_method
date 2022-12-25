@@ -54,11 +54,12 @@ class LeanHyDRAHook(Hook):
         self._computed_indices = set(computed_indices)
         self.sample_gradient_hook.set_computed_indices(computed_indices)
 
-    def _after_execute(self, model_executor, **kwargs):
+    def _after_execute(self, **kwargs):
+        assert self._contributions is not None
         assert self._contributions.shape[0] == self._training_set_size
         save_dir = "."
         if "model_executor" in kwargs:
-            trainer = model_executor
+            trainer = kwargs["model_executor"]
             save_dir = os.path.join(trainer.save_dir, "lean_HyDRA")
             os.makedirs(save_dir, exist_ok=True)
 

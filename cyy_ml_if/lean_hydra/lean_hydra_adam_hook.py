@@ -19,10 +19,12 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         self.__gradient_product = torch.zeros(self._training_set_size).to(device)
         self.__first_average_product = torch.zeros(self._training_set_size).to(device)
         self.__second_average_product = torch.zeros(self._training_set_size).to(device)
-        self._test_gradient = self._test_gradient.to(device)
         self.__step = 0
 
-    def _before_batch(self, **kwargs):
+    def _after_optimizer_step(self, step_skipped, **kwargs):
+        if step_skipped:
+            return
+
         optimizer = self._get_optimizer(**kwargs)
 
         assert len(optimizer.param_groups) == 1
@@ -54,10 +56,6 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
             counter.elapsed_milliseconds(),
         )
 
-    def _after_optimizer_step(self, step_skipped, **kwargs):
-        if step_skipped:
-            self.sample_gradient_hook.reset_result()
-            return
         trainer = kwargs["model_executor"]
         optimizer = trainer.get_optimizer()
         assert self.__step == list(optimizer.state.values())[0]["step"]
