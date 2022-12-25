@@ -128,6 +128,16 @@ def optional_addition(*args):
     return res
 
 
+def optional_subtraction(a, b):
+    if a is None:
+        if b is None:
+            return None
+        return -b
+    if b is None:
+        return a
+    return a - b
+
+
 def optional_multiplication(*args):
     res = None
     for a in args:

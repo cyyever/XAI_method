@@ -10,6 +10,7 @@ from cyy_torch_toolbox.ml_type import (MachineLearningPhase,
 def test_api():
     config = DefaultConfig(dataset_name="MNIST", model_name="LeNet5")
     config.hyper_parameter_config.epoch = 1
+    config.hyper_parameter_config.optimizer_name = "Adam"
     config.hyper_parameter_config.learning_rate = 0.01
     trainer = config.create_trainer()
     trainer.append_hook(AddIndexToDataset())

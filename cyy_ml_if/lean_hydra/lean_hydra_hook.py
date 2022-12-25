@@ -45,10 +45,16 @@ class LeanHyDRAHook(Hook):
         )
 
     def _get_optimizer(self, **kwargs):
-        if "optimizer" in kwargs:
-            return kwargs["optimizer"]
-        trainer = kwargs["model_executor"]
-        return trainer.get_optimizer()
+        if "model_executor" in kwargs:
+            trainer = kwargs["model_executor"]
+            return trainer.get_optimizer()
+        return kwargs["optimizer"]
+
+    def _get_model_util(self, **kwargs):
+        if "model_executor" in kwargs:
+            trainer = kwargs["model_executor"]
+            return trainer.model_util
+        return kwargs["model_with_loss"].model_util
 
     def set_computed_indices(self, computed_indices):
         self._computed_indices = set(computed_indices)

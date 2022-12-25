@@ -56,6 +56,7 @@ class LeanHyDRA:
             hook_point=ModelExecutorHookPoint.AFTER_OPTIMIZER_STEP,
             batch_size=len(sample_indices),
             step_skipped=False,
+            model_with_loss=self.model_with_loss,
             optimizer=self.optimizer,
         )
 
