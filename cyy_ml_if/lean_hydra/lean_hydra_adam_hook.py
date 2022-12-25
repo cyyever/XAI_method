@@ -36,20 +36,16 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         self.__second_average = cat_tensors_to_vector(
             (optimizer.state[p]["exp_avg_sq"] for p in parameter_seq)
         )
+        # TODO fix mean
         corrected_first_average = self.__first_average / (1 - (beta1**step))
         corrected_second_average = self.__second_average / (1 - (beta2**step))
         eps = optimizer.param_groups[0]["eps"]
-        # corrected_second_average_sqrt_with_epsilon = (
-        #     self.__corrected_second_average_sqrt + self.__eps
-        # )
-        # corrected_second_average_sqrt_with_epsilon_square = (
-        #     self.__corrected_second_average_sqrt_with_epsilon.square()
-        # )
 
         self.__gradient_product = optional_multiplication(
             self._contributions, weight_decay
         )
         for idx, dot_product in self.sample_gradient_hook.result_dict.items():
+            print("dot_product is", dot_product)
             self.__gradient_product[idx] += (
                 dot_product * self._training_set_size / batch_size
             )
@@ -63,6 +59,7 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
             optional_multiplication(self.__second_average_product, beta2),
             optional_multiplication(self.__gradient_product, 2 * (1 - beta2)),
         ) / (1 - (beta2**step))
+        corrected_second_average_sqrt = corrected_second_average.sqrt().mean().item()
 
         self._contributions = optional_subtraction(
             self._contributions,
@@ -70,14 +67,14 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
                 optional_addition(
                     optional_multiplication(
                         self.__first_average_product,
-                        corrected_second_average.sqrt() + eps,
+                        corrected_second_average_sqrt + eps,
                     ),
                     optional_multiplication(
                         self.__second_average_product,
-                        corrected_first_average
-                        / ((corrected_second_average).sqrt() * 2),
+                        corrected_first_average.mean().item()
+                        / (corrected_second_average_sqrt * 2),
                     ),
                 ),
-                lr / ((corrected_second_average.sqrt() + eps) ** 2),
+                lr / ((corrected_second_average_sqrt + eps) ** 2),
             ),
         )
