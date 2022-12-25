@@ -10,9 +10,9 @@ from cyy_torch_toolbox.hook import Hook
 
 
 class LeanHyDRAHook(Hook):
-    def __init__(self, test_gradient):
+    def __init__(self, test_gradient, **kwargs):
         super().__init__(stripable=True)
-        self.sample_gradient_hook = SampleGradientHook()
+        self.sample_gradient_hook = SampleGradientHook(**kwargs)
         self._computed_indices = None
         self.__test_gradient = test_gradient.cpu()
         self._contributions: torch.Tensor | None = None
