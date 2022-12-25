@@ -1,6 +1,8 @@
+import traceback
 from typing import Callable
 
 import torch
+from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
     get_sample_gradient_dict
 from cyy_torch_algorithm.data_structure.synced_tensor_dict import \
@@ -99,3 +101,48 @@ def compute_perturbation_gradient_difference(
         sample_dict.release()
         perturbation_dict.release()
     return result
+
+
+def check_overflow_and_underflow(tensor):
+    if tensor is None:
+        return
+    if torch.any(torch.isnan(tensor)):
+        get_logger().error("find nan tensor %s", tensor.cpu())
+        get_logger().error("traceback:%s", str(traceback.extract_stack(limit=10)))
+        assert False
+    if torch.any(torch.isinf(tensor)):
+        get_logger().error("find inf tensor %s", tensor.cpu())
+        get_logger().error("traceback:%s", str(traceback.extract_stack(limit=10)))
+        assert False
+
+
+def optional_addition(*args):
+    res = None
+    for a in args:
+        if a is None:
+            continue
+        if res is None:
+            res = a
+        else:
+            res = res + a
+    return res
+
+
+def optional_multiplication(*args):
+    res = None
+    for a in args:
+        if a is None:
+            return None
+        if res is None:
+            res = a
+        else:
+            res = res * a
+    return res
+
+
+def optional_division(a, b, epsilon):
+    if a is None:
+        return None
+    if epsilon is None:
+        return a / b
+    return a / (b + epsilon)
