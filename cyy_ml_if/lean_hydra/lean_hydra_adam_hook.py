@@ -1,7 +1,7 @@
 from cyy_ml_if.util import (optional_addition, optional_multiplication,
                             optional_subtraction)
-from cyy_naive_lib.log import get_logger
-from cyy_naive_lib.time_counter import TimeCounter
+# from cyy_naive_lib.log import get_logger
+# from cyy_naive_lib.time_counter import TimeCounter
 from cyy_torch_toolbox.tensor import cat_tensors_to_vector
 
 from .lean_hydra_hook import LeanHyDRAHook
@@ -46,7 +46,9 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         #     self.__corrected_second_average_sqrt_with_epsilon.square()
         # )
 
-        self.__gradient_product = optional_multiplication(self._contributions, weight_decay)
+        self.__gradient_product = optional_multiplication(
+            self._contributions, weight_decay
+        )
         for idx, dot_product in self.sample_gradient_hook.result_dict.items():
             self.__gradient_product[idx] += (
                 dot_product * self._training_set_size / batch_size
