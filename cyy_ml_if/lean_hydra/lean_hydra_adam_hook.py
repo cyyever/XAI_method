@@ -21,19 +21,16 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         self.__second_average_product = torch.zeros(self._training_set_size).to(device)
         self.__step = 0
 
-    def _after_optimizer_step(self, step_skipped, **kwargs):
+    def _after_optimizer_step(self, step_skipped, batch_size, **kwargs):
         if step_skipped:
             return
 
-        optimizer = self._get_optimizer(**kwargs)
-
-        assert len(optimizer.param_groups) == 1
-        self.__step += 1
-
-        cur_learning_rate = trainer.get_data("cur_learning_rates")[0]
-        batch_size = kwargs["batch_size"]
-
         counter = TimeCounter()
+        self.__step += 1
+        optimizer = self._get_optimizer(**kwargs)
+        assert len(optimizer.param_groups) == 1
+        lr = optimizer.param_groups[0]["lr"]
+
         self.__gradient_product = (
             trainer.hyper_parameter.weight_decay * self._contributions
         )
@@ -50,7 +47,6 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
             beta2 * self.__second_average_product
             + 2 * (1 - beta2) * self.__gradient_product
         ) / (1 - (beta2**self.__step))
-        # self._contributions -= cur_learning_rate * self.__gradient_product
         get_logger().debug(
             "batch use time %s ms",
             counter.elapsed_milliseconds(),
@@ -62,5 +58,5 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         print("exec after optimizer")
 
     def _after_execute(self, **kwargs):
-        self._contributions = (-self._contributions) / self._training_set_size
+        self._contributions = (self._contributions) / self._training_set_size
         super()._after_execute(**kwargs)
