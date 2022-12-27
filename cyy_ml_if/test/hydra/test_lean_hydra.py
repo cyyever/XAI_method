@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from cyy_ml_if.lean_hydra.lean_hydra import LeanHyDRA
+from cyy_torch_algorithm.retraining import DeterministicTraining
 from cyy_torch_toolbox.default_config import DefaultConfig
 from cyy_torch_toolbox.hooks.add_index_to_dataset import AddIndexToDataset
 from cyy_torch_toolbox.ml_type import (MachineLearningPhase,
@@ -9,10 +10,13 @@ from cyy_torch_toolbox.ml_type import (MachineLearningPhase,
 
 def test_api():
     config = DefaultConfig(dataset_name="MNIST", model_name="LeNet5")
-    config.hyper_parameter_config.epoch = 1
+    config.hyper_parameter_config.epoch = 10
+    config.cache_transforms = "cpu"
+    config.hyper_parameter_config.learning_rate_scheduler = "CosineAnnealingLR"
     config.hyper_parameter_config.optimizer_name = "Adam"
     config.hyper_parameter_config.learning_rate = 0.01
-    trainer = config.create_trainer()
+    deterministic_training = DeterministicTraining(config)
+    trainer = deterministic_training.create_deterministic_trainer()
     trainer.append_hook(AddIndexToDataset())
     trainer.train()
     test_gradient = trainer.get_inferencer(
@@ -26,6 +30,8 @@ def test_api():
         training_set_size=len(trainer.dataset_util),
     )
     hydra_obj.set_computed_indices([0, 1])
+    trainer = deterministic_training.recreate_trainer()
+    trainer.append_hook(AddIndexToDataset())
     trainer.append_named_hook(
         ModelExecutorHookPoint.AFTER_FORWARD, "iterate", hydra_obj.iterate
     )

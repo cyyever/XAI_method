@@ -123,7 +123,7 @@ class HyDRAHook(Hook):
     def _after_execute(self, **kwargs):
         get_logger().info("end hyper-gradient tracking")
         trainer = kwargs["model_executor"]
-        trainer.remove_hook(name="prepare_hook")
+        trainer.remove_named_hook(name="prepare_hook")
         tester = trainer.get_inferencer(phase=MachineLearningPhase.Test)
         tester.disable_logger()
         tester.disable_performance_metric_logger()

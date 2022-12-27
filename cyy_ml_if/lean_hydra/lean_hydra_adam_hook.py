@@ -45,10 +45,10 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
             self._contributions, weight_decay
         )
         for idx, dot_product in self.sample_gradient_hook.result_dict.items():
-            print("dot_product is", dot_product)
             self.__gradient_product[idx] += (
                 dot_product * self._training_set_size / batch_size
             )
+        self.sample_gradient_hook.reset_result()
 
         self.__first_average_product = optional_addition(
             optional_multiplication(self.__first_average_product, beta1),
