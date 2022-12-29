@@ -13,7 +13,8 @@ def test_api():
     config.hyper_parameter_config.epoch = 10
     config.cache_transforms = "cpu"
     config.hyper_parameter_config.learning_rate_scheduler = "CosineAnnealingLR"
-    config.hyper_parameter_config.optimizer_name = "Adam"
+    # config.hyper_parameter_config.optimizer_name = "Adam"
+    config.hyper_parameter_config.optimizer_name = "SGD"
     config.hyper_parameter_config.learning_rate = 0.01
     deterministic_training = DeterministicTraining(config)
     trainer = deterministic_training.create_deterministic_trainer()
@@ -22,6 +23,8 @@ def test_api():
     test_gradient = trainer.get_inferencer(
         phase=MachineLearningPhase.Test
     ).get_gradient()
+    trainer = deterministic_training.recreate_trainer()
+    trainer.append_hook(AddIndexToDataset())
     hydra_obj = LeanHyDRA(
         model=trainer.model,
         loss_function=trainer.loss_fun,
@@ -29,11 +32,9 @@ def test_api():
         test_gradient=test_gradient,
         training_set_size=len(trainer.dataset_util),
     )
-    hydra_obj.set_computed_indices([0, 1])
-    trainer = deterministic_training.recreate_trainer()
-    trainer.append_hook(AddIndexToDataset())
     trainer.append_named_hook(
         ModelExecutorHookPoint.AFTER_FORWARD, "iterate", hydra_obj.iterate
     )
+    hydra_obj.set_computed_indices([0, 1])
     trainer.train()
     print(hydra_obj.get_contribution())

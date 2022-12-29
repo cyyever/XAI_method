@@ -18,17 +18,19 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
         assert len(optimizer.param_groups) == 1
         momentum = optimizer.param_groups[0]["momentum"]
         lr = optimizer.param_groups[0]["lr"]
+        assert lr
         weight_decay = optimizer.param_groups[0]["weight_decay"]
         self.__mom_product = optional_addition(
-            optional_multiplication(self._contributions, weight_decay),
             optional_multiplication(self.__mom_product, momentum),
+            optional_multiplication(self._contributions, weight_decay),
         )
 
-        for idx, dot_product in self.sample_gradient_hook.result_dict.items():
+        for idx, dot_product in self._sample_gradient_hook.result_dict.items():
             self.__mom_product[idx] += (
                 dot_product * self._training_set_size / batch_size
             )
-        self.sample_gradient_hook.reset_result()
+        self._sample_gradient_hook.reset_result()
+        assert id(self._contributions) != id(self.__mom_product)
         self._contributions -= lr * self.__mom_product
         get_logger().debug(
             "batch use time %s ms",

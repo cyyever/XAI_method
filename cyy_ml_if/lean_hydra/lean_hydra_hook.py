@@ -8,12 +8,14 @@ class LeanHyDRAHook(BaseHook):
     def __init__(self, test_gradient, **kwargs):
         super().__init__(**kwargs)
         self.__test_gradient = test_gradient.cpu()
-        self.sample_gradient_hook.set_result_transform(self._gradient_dot_product)
+        self._sample_gradient_hook.set_result_transform(self._gradient_dot_product)
+        if self._batch_hvp_hook is not None:
+            self._batch_hvp_hook.set_vectors([self.__test_gradient])
 
     def _gradient_dot_product(self, result, **kwargs):
         return self.__test_gradient.dot(result.cpu()).item()
 
-    def _after_execute(self, **kwargs):
+    def _after_execute(self, **kwargs) -> None:
         assert self._contributions is not None
         assert self._contributions.shape[0] == self._training_set_size
         save_dir = "."
