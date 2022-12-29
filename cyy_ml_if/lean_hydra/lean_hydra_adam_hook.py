@@ -21,6 +21,8 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
             return
 
         optimizer = self._get_optimizer(**kwargs)
+        if not optimizer.state:
+            return
         step = list(optimizer.state.values())[0]["step"]
         assert len(optimizer.param_groups) == 1
         lr = optimizer.param_groups[0]["lr"]
