@@ -1,5 +1,6 @@
-from cyy_ml_if.util import (optional_addition, optional_multiplication,
-                            optional_subtraction)
+from cyy_ml_if.arithmetic_util import (optional_addition,
+                                       optional_multiplication,
+                                       optional_subtraction)
 # from cyy_naive_lib.log import get_logger
 # from cyy_naive_lib.time_counter import TimeCounter
 from cyy_torch_toolbox.tensor import cat_tensors_to_vector
