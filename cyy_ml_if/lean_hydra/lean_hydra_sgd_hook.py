@@ -1,4 +1,5 @@
-from cyy_ml_if.util import optional_addition, optional_multiplication
+from cyy_ml_if.arithmetic_util import (optional_addition,
+                                       optional_multiplication)
 from cyy_naive_lib.log import get_logger
 from cyy_naive_lib.time_counter import TimeCounter
 

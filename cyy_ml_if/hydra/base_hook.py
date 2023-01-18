@@ -9,14 +9,14 @@ from cyy_torch_toolbox.hook import Hook
 
 
 class BaseHook(Hook):
-    def __init__(self, add_index=True, use_hessian=False):
+    def __init__(self, use_hessian=False):
         super().__init__(stripable=True)
         self._use_hessian = use_hessian
         self._batch_hvp_hook = None
         if self._use_hessian:
             self._batch_hvp_hook = BatchHVPHook()
 
-        self._sample_gradient_hook = SampleGradientHook(add_index=add_index)
+        self._sample_gradient_hook = SampleGradientHook()
         self._computed_indices = None
         self._contributions: torch.Tensor | None = None
         self._training_set_size = None

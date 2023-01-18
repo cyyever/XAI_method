@@ -3,7 +3,6 @@
 from cyy_ml_if.lean_hydra.lean_hydra import LeanHyDRA
 from cyy_torch_algorithm.retraining import DeterministicTraining
 from cyy_torch_toolbox.default_config import DefaultConfig
-from cyy_torch_toolbox.hooks.add_index_to_dataset import AddIndexToDataset
 from cyy_torch_toolbox.ml_type import (MachineLearningPhase,
                                        ModelExecutorHookPoint)
 
@@ -18,13 +17,11 @@ def test_api():
     config.hyper_parameter_config.learning_rate = 0.01
     deterministic_training = DeterministicTraining(config)
     trainer = deterministic_training.create_deterministic_trainer()
-    trainer.append_hook(AddIndexToDataset())
     trainer.train()
     test_gradient = trainer.get_inferencer(
         phase=MachineLearningPhase.Test
     ).get_gradient()
     trainer = deterministic_training.recreate_trainer()
-    trainer.append_hook(AddIndexToDataset())
     hydra_obj = LeanHyDRA(
         model=trainer.model,
         loss_function=trainer.loss_fun,
