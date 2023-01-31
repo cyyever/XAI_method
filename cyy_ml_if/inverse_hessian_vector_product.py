@@ -39,8 +39,8 @@ def stochastic_inverse_hessian_vector_product(
         hook = BatchHVPHook()
 
         tmp_inferencer = copy.deepcopy(inferencer)
-        tmp_inferencer.disable_logger()
-        tmp_inferencer.disable_performance_metric_logger()
+        tmp_inferencer.disable_hook("logger")
+        tmp_inferencer.disable_hook("performance_metric_logger")
         cur_products = tensor_to(cur_products, device=tmp_inferencer.device)
         vectors = tensor_to(vectors, device=tmp_inferencer.device)
 
