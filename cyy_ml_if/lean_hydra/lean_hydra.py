@@ -44,7 +44,6 @@ class LeanHyDRA:
             inputs=inputs,
             targets=targets,
             model_executor=None,
-            input_features=None,
         )
         self.__hooks.exec_hooks(
             hook_point=ModelExecutorHookPoint.AFTER_OPTIMIZER_STEP,
