@@ -43,6 +43,10 @@ class BaseHook(Hook):
             device, non_blocking=True
         )
 
+    @property
+    def computed_indices(self):
+        return self._computed_indices
+
     def _get_optimizer(self, **kwargs):
         if "model_executor" in kwargs:
             trainer = kwargs["model_executor"]
