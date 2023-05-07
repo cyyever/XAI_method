@@ -19,15 +19,15 @@ class TracInHook(TracInBaseHook):
         get_logger().info("track %s indices", len(self.__tracked_indices))
 
     @torch.no_grad()
-    def _before_execute(self, model_executor, **kwargs):
-        super()._before_execute(model_executor=model_executor, **kwargs)
+    def _before_execute(self, executor, **kwargs):
+        super()._before_execute(executor=executor, **kwargs)
         if self.__tracked_indices is not None:
             self._sample_grad_hook.set_computed_indices(self.__tracked_indices)
 
-    def _after_optimizer_step(self, model_executor, step_skipped, batch_size, **kwargs):
+    def _after_optimizer_step(self, executor, step_skipped, batch_size, **kwargs):
         if step_skipped:
             return
-        trainer = model_executor
+        trainer = executor
         optimizer = trainer.get_optimizer()
         assert len(optimizer.param_groups) == 1
         if not isinstance(optimizer, torch.optim.SGD):
@@ -51,13 +51,13 @@ class TracInHook(TracInBaseHook):
                 )
         self._sample_grad_hook.reset_result()
 
-    def _after_execute(self, model_executor, **kwargs):
+    def _after_execute(self, executor, **kwargs):
         if -1 in self._influence_values:
             assert len(self._influence_values) == 1
             self._influence_values = self._influence_values[-1]
         with open(
             os.path.join(
-                model_executor.save_dir,
+                executor.save_dir,
                 "tracin.json",
             ),
             mode="wt",

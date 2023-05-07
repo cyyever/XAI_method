@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import copy
 
 import torch
@@ -8,8 +6,7 @@ from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation.batch_hvp.batch_hvp_hook import \
     BatchHVPHook
 from cyy_torch_toolbox.inferencer import Inferencer
-from cyy_torch_toolbox.ml_type import (ModelExecutorHookPoint,
-                                       StopExecutingException)
+from cyy_torch_toolbox.ml_type import ExecutorHookPoint, StopExecutingException
 from cyy_torch_toolbox.tensor import cat_tensors_to_vector, tensor_to
 
 
@@ -85,7 +82,7 @@ def stochastic_inverse_hessian_vector_product(
         hook.set_data_fun(lambda: cur_products)
         tmp_inferencer.append_hook(hook)
         tmp_inferencer.append_named_hook(
-            hook_point=ModelExecutorHookPoint.AFTER_FORWARD,
+            hook_point=ExecutorHookPoint.AFTER_FORWARD,
             name="compute_product",
             fun=compute_product,
         )

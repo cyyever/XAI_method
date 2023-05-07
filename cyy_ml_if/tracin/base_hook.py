@@ -30,13 +30,13 @@ class TracInBaseHook(Hook):
     def _before_execute(self, **kwargs):
         self._influence_values = {}
 
-    def __compute_test_sample_gradients(self, model_executor, batch_index):
+    def __compute_test_sample_gradients(self, executor, batch_index):
         if batch_index != 0 and (
             self.__check_point_gap is not None
             and batch_index % self.__check_point_gap != 0
         ):
             return
-        inferencer = model_executor.get_inferencer(phase=MachineLearningPhase.Test)
+        inferencer = executor.get_inferencer(phase=MachineLearningPhase.Test)
         inferencer.disable_logger()
         inferencer.disable_performance_metric_logger()
         if self.__test_sample_indices is None:
@@ -54,7 +54,5 @@ class TracInBaseHook(Hook):
             )
 
     @torch.no_grad()
-    def _before_batch(self, model_executor, batch_index, **kwargs):
-        self.__compute_test_sample_gradients(
-            model_executor=model_executor, batch_index=batch_index
-        )
+    def _before_batch(self, executor, batch_index, **kwargs):
+        self.__compute_test_sample_gradients(executor=executor, batch_index=batch_index)

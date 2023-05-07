@@ -14,8 +14,7 @@ from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import
 from cyy_torch_algorithm.data_structure.synced_tensor_dict import \
     SyncedTensorDict
 from cyy_torch_toolbox.hook import Hook
-from cyy_torch_toolbox.ml_type import (MachineLearningPhase,
-                                       ModelExecutorHookPoint)
+from cyy_torch_toolbox.ml_type import ExecutorHookPoint, MachineLearningPhase
 
 
 class HyDRAHook(Hook):
@@ -46,8 +45,8 @@ class HyDRAHook(Hook):
 
         self._approx_hyper_gradient_dict = None
 
-    def _before_batch(self, model_executor, inputs, targets, **kwargs):
-        trainer = model_executor
+    def _before_batch(self, executor, inputs, targets, **kwargs):
+        trainer = executor
         if self._trainer is None:
             self._trainer = trainer
         if self._training_set_size is None:
@@ -57,7 +56,7 @@ class HyDRAHook(Hook):
             assert not self._hessian_computation_arguments
             self._hessian_computation_arguments = {}
             self._hvp_arguments = {
-                "model_executor": trainer,
+                "executor": trainer,
                 "inputs": inputs,
                 "targets": targets,
             }
@@ -73,7 +72,7 @@ class HyDRAHook(Hook):
         return self.__save_dir
 
     def _before_execute(self, **kwargs):
-        trainer = kwargs["model_executor"]
+        trainer = kwargs["executor"]
         if not self._computed_indices:
             self._computed_indices = set(range(len(trainer.dataset)))
         else:
@@ -110,7 +109,7 @@ class HyDRAHook(Hook):
             )
             self._delayed_approximation_computations = {}
             trainer.prepend_named_hook(
-                hook_point=ModelExecutorHookPoint.BEFORE_BATCH,
+                hook_point=ExecutorHookPoint.BEFORE_BATCH,
                 name="prepare_hook",
                 fun=self.__prepare_hook,
                 stripable=True,
@@ -122,7 +121,7 @@ class HyDRAHook(Hook):
 
     def _after_execute(self, **kwargs):
         get_logger().info("end hyper-gradient tracking")
-        trainer = kwargs["model_executor"]
+        trainer = kwargs["executor"]
         trainer.remove_named_hook(name="prepare_hook")
         tester = trainer.get_inferencer(phase=MachineLearningPhase.Test)
         tester.disable_logger()
@@ -191,7 +190,6 @@ class HyDRAHook(Hook):
         if self.use_approximation:
             delayed_keys = list(self._delayed_approximation_computations.keys())
             for chunk in split_list_to_chunks(delayed_keys, self._cache_size):
-
                 self._get_hyper_gradient_dict(True).prefetch(chunk)
                 for k in chunk:
                     get_logger().debug(
@@ -262,7 +260,7 @@ class HyDRAHook(Hook):
         get_logger().info("end do _do_all_delayed_computation")
         tensor_dict = self._get_hyper_gradient_dict(use_approximation)
         test_gradient = test_gradient.cpu()
-        for (index, value) in tensor_dict.items():
+        for index, value in tensor_dict.items():
             hyper_gradient = self._decode_hyper_gradient_tensors(value)[0]
             contribution[index] = (
                 -(test_gradient @ hyper_gradient.cpu()) / self._training_set_size
@@ -323,7 +321,7 @@ class HyDRAHook(Hook):
         approximation_hyper_gradient_dir = self._get_hyper_gradient_dict(
             use_approximation
         )
-        for (index, _) in approximation_hyper_gradient_dir.items():
+        for index, _ in approximation_hyper_gradient_dir.items():
             hyper_gradient = self.get_hyper_gradient(index, use_approximation)
             callback(index, hyper_gradient)
 
@@ -331,7 +329,7 @@ class HyDRAHook(Hook):
         assert self.use_approximation and self.use_hessian
         self._do_all_delayed_computation()
         approximation_hyper_gradient_dir = self._get_hyper_gradient_dict(True)
-        for (index, _) in approximation_hyper_gradient_dir.items():
+        for index, _ in approximation_hyper_gradient_dir.items():
             approx_hyper_gradient = self.get_hyper_gradient(index, True)
             hessian_hyper_gradient = self.get_hyper_gradient(index, False)
             callback(index, approx_hyper_gradient, hessian_hyper_gradient)

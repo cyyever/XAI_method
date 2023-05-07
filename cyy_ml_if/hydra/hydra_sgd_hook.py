@@ -6,17 +6,17 @@ class HyDRASGDHook(HyDRAHook):
     __lr = None
     __weight_decay = None
 
-    def _before_batch(self, model_executor, **kwargs):
-        trainer = model_executor
+    def _before_batch(self, executor, **kwargs):
+        trainer = executor
         optimizer = trainer.get_optimizer()
         assert len(optimizer.param_groups) == 1
 
         self.__momentum = optimizer.param_groups[0]["momentum"]
         self.__lr = optimizer.param_groups[0]["lr"]
         self.__weight_decay = optimizer.param_groups[0]["weight_decay"]
-        super()._before_batch(model_executor=model_executor, **kwargs)
+        super()._before_batch(executor=executor, **kwargs)
 
-    def _after_optimizer_step(self, model_executor, batch_size, step_skipped, **kwargs):
+    def _after_optimizer_step(self, executor, batch_size, step_skipped, **kwargs):
         if step_skipped:
             self._sample_gradient_hook.reset_result()
             return
@@ -50,7 +50,6 @@ class HyDRASGDHook(HyDRAHook):
     def _do_delayed_computation(
         self, use_approximation: bool, index, hessian_vector_product=None
     ):
-
         hyper_gradient, mom_gradient = self._get_hyper_gradient_tensors(
             index, use_approximation, none_num=2
         )

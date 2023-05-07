@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
-
 from cyy_ml_if.lean_hydra.lean_hydra import LeanHyDRA
 from cyy_torch_algorithm.retraining import DeterministicTraining
 from cyy_torch_toolbox.default_config import DefaultConfig
-from cyy_torch_toolbox.ml_type import (MachineLearningPhase,
-                                       ModelExecutorHookPoint)
+from cyy_torch_toolbox.ml_type import ExecutorHookPoint, MachineLearningPhase
 
 
 def test_api():
@@ -34,10 +31,10 @@ def test_api():
         hydra_obj.optimizer = trainer.get_optimizer()
 
     trainer.append_named_hook(
-        ModelExecutorHookPoint.BEFORE_EXECUTE, "set_optimizer", set_optimizer
+        ExecutorHookPoint.BEFORE_EXECUTE, "set_optimizer", set_optimizer
     )
     trainer.append_named_hook(
-        ModelExecutorHookPoint.AFTER_FORWARD, "iterate", hydra_obj.iterate
+        ExecutorHookPoint.AFTER_FORWARD, "iterate", hydra_obj.iterate
     )
     hydra_obj.set_computed_indices([0, 1])
     trainer.train()

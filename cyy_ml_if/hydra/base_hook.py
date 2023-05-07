@@ -26,9 +26,8 @@ class BaseHook(Hook):
         return self._contributions
 
     def _before_execute(self, **kwargs):
-        if "model_executor" in kwargs:
-            model_executor = kwargs["model_executor"]
-            trainer = model_executor
+        if "executor" in kwargs:
+            trainer = kwargs["executor"]
             self._training_set_size = trainer.dataset_size
             device = trainer.device
         else:
@@ -48,16 +47,16 @@ class BaseHook(Hook):
         return self._computed_indices
 
     def _get_optimizer(self, **kwargs):
-        if "model_executor" in kwargs:
-            trainer = kwargs["model_executor"]
+        if "executor" in kwargs:
+            trainer = kwargs["executor"]
             return trainer.get_optimizer()
         return kwargs["optimizer"]
 
     def _get_model_util(self, **kwargs):
-        if "model_executor" in kwargs:
-            trainer = kwargs["model_executor"]
+        if "executor" in kwargs:
+            trainer = kwargs["executor"]
             return trainer.model_util
-        return kwargs["model_with_loss"].model_util
+        return kwargs["model_evaluator"].model_util
 
     def set_computed_indices(self, computed_indices):
         self._computed_indices = set(computed_indices)

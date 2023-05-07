@@ -1,8 +1,9 @@
 import math
 
 import torch
-from cyy_ml_if.hydra.hydra_hook import HyDRAHook
 from cyy_torch_toolbox.tensor import cat_tensors_to_vector
+
+from .hydra_hook import HyDRAHook
 
 
 class HyDRAAdamHook(HyDRAHook):
@@ -17,7 +18,7 @@ class HyDRAAdamHook(HyDRAHook):
 
     def _before_batch(self, **kwargs):
         super()._before_batch(**kwargs)
-        trainer = kwargs["model_executor"]
+        trainer = kwargs["executor"]
 
         optimizer = trainer.get_optimizer()
         assert len(optimizer.param_groups) == 1
@@ -53,7 +54,7 @@ class HyDRAAdamHook(HyDRAHook):
                 self._hessian_computation_arguments[idx].append(arguments)
 
     def _after_optimizer_step(self, **kwargs):
-        trainer = kwargs["model_executor"]
+        trainer = kwargs["executor"]
         optimizer = trainer.get_optimizer()
         parameter_seq = tuple(trainer.model_util.get_parameter_seq(detach=False))
         assert parameter_seq[0] in optimizer.state

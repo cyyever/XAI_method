@@ -19,8 +19,8 @@ class LeanHyDRAHook(BaseHook):
         assert self._contributions is not None
         assert self._contributions.shape[0] == self._training_set_size
         save_dir = "."
-        if "model_executor" in kwargs:
-            trainer = kwargs["model_executor"]
+        if "executor" in kwargs:
+            trainer = kwargs["executor"]
             save_dir = os.path.join(trainer.save_dir, "lean_HyDRA")
             os.makedirs(save_dir, exist_ok=True)
 
