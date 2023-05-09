@@ -17,7 +17,7 @@ def compute_perturbation_grad_cos(
 ) -> tuple:
     if test_gradient is None:
         inferencer = trainer.get_inferencer(
-            phase=MachineLearningPhase.Test, copy_model=True
+            phase=MachineLearningPhase.Test, deepcopy_model=True
         )
         test_gradient = inferencer.get_gradient()
         del inferencer

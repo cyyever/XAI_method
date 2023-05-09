@@ -17,7 +17,7 @@ def compute_perturbation_gradient_difference(
     result_transform: Callable | None = None,
 ) -> dict | SyncedTensorDict:
     inferencer = trainer.get_inferencer(
-        phase=MachineLearningPhase.Training, copy_model=True
+        phase=MachineLearningPhase.Training, deepcopy_model=True
     )
     trainer.offload_from_gpu()
 

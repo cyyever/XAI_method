@@ -20,7 +20,7 @@ class LeanHyDRAConfig(DefaultConfig):
     def recreate_trainer_and_hook(self, test_gradient=None):
         if test_gradient is None:
             tester = self.deterministic_training.last_trainer.get_inferencer(
-                phase=MachineLearningPhase.Test, copy_model=False
+                phase=MachineLearningPhase.Test, deepcopy_model=False
             )
             tester.disable_logger()
             test_gradient = tester.get_gradient()

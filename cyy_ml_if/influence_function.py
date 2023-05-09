@@ -24,13 +24,13 @@ def compute_influence_function(
 ) -> dict:
     if test_gradient is None:
         inferencer = trainer.get_inferencer(
-            phase=MachineLearningPhase.Test, copy_model=True
+            phase=MachineLearningPhase.Test, deepcopy_model=True
         )
         test_gradient = inferencer.get_gradient()
         del inferencer
 
     inferencer = trainer.get_inferencer(
-        phase=MachineLearningPhase.Training, copy_model=True
+        phase=MachineLearningPhase.Training, deepcopy_model=True
     )
     if inverse_hvp_arguments is None:
         inverse_hvp_arguments = get_default_inverse_hvp_arguments()
@@ -56,12 +56,12 @@ def compute_perturbation_influence_function(
 ) -> dict:
     if test_gradient is None:
         inferencer = trainer.get_inferencer(
-            phase=MachineLearningPhase.Test, copy_model=True
+            phase=MachineLearningPhase.Test, deepcopy_model=True
         )
         test_gradient = inferencer.get_gradient()
 
     inferencer = trainer.get_inferencer(
-        phase=MachineLearningPhase.Training, copy_model=True
+        phase=MachineLearningPhase.Training, deepcopy_model=True
     )
     if inverse_hvp_arguments is None:
         inverse_hvp_arguments = get_default_inverse_hvp_arguments()
@@ -76,7 +76,7 @@ def compute_perturbation_influence_function(
     )[0].cpu()
     if grad_diff is not None:
         res = {}
-        for (perturbation_idx, v) in grad_diff.items():
+        for perturbation_idx, v in grad_diff.items():
             res[perturbation_idx] = v.cpu().dot(product).item()
         return res
 

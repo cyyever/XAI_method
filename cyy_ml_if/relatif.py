@@ -22,7 +22,7 @@ def compute_perturbation_relatif(
 ) -> dict:
     if test_gradient is None:
         inferencer = trainer.get_inferencer(
-            phase=MachineLearningPhase.Test, copy_model=True
+            phase=MachineLearningPhase.Test, deepcopy_model=True
         )
         test_gradient = inferencer.get_gradient()
     test_gradient = test_gradient.cpu()
@@ -42,10 +42,10 @@ def compute_perturbation_relatif(
     accumulated_indices = []
     accumulated_vectors = []
     inferencer = trainer.get_inferencer(
-        phase=MachineLearningPhase.Training, copy_model=True
+        phase=MachineLearningPhase.Training, deepcopy_model=True
     )
     batch_size = 32
-    for (perturbation_idx, v) in grad_diff.items():
+    for perturbation_idx, v in grad_diff.items():
         v_norm = torch.linalg.vector_norm(v)
         # normalize to 1 makes convergence easier
         if v_norm.item() > 1:
