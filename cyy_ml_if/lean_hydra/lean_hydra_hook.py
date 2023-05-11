@@ -2,19 +2,23 @@ import json
 import os
 
 from cyy_ml_if.hydra.base_hook import BaseHook
-from cyy_torch_toolbox.tensor import cat_tensor_dict
+from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
+    sample_dot_product
+from cyy_torch_toolbox.tensor import cat_tensor_dict, tensor_to
 
 
 class LeanHyDRAHook(BaseHook):
     def __init__(self, test_gradient, **kwargs):
         super().__init__(**kwargs)
-        self.__test_gradient = test_gradient.cpu()
+        self.__test_gradient = tensor_to(test_gradient, non_blocking=True, device="cpu")
         self._sample_gradient_hook.set_result_transform(self._gradient_dot_product)
         if self._batch_hvp_hook is not None:
             self._batch_hvp_hook.set_vectors([self.__test_gradient])
 
     def _gradient_dot_product(self, result, **kwargs):
-        return self.__test_gradient.dot(cat_tensor_dict(result).cpu()).item()
+        return sample_dot_product(
+            self.__test_gradient, tensor_to(result, non_blocking=True, device="cpu")
+        )
 
     def _after_execute(self, **kwargs) -> None:
         assert self._contributions is not None
