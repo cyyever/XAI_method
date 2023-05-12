@@ -70,7 +70,7 @@ def stochastic_inverse_hessian_vector_product(
                     for a, b in zip(cur_products, next_products)
                 ]
             )
-            get_logger().error(
+            get_logger().info(
                 "diffs is %s, epsilon is %s, epoch is %s, iteration is %s, max_iteration is %s, scale %s",
                 diffs,
                 epsilon,
@@ -109,5 +109,9 @@ def stochastic_inverse_hessian_vector_product(
         hook.release_queue()
         return results.cpu()
 
-    product_list = [iteration(inferencer, vectors) for _ in range(repeated_num)]
-    return sum(product_list) / len(product_list)
+    product_list: torch.Tensor = torch.stack(
+        [iteration(inferencer, vectors) for _ in range(repeated_num)]
+    )
+    std, mean = torch.std_mean(product_list, dim=0)
+    get_logger().info("std is %s", torch.norm(std, p=2))
+    return mean
