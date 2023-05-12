@@ -3,8 +3,15 @@ from typing import Callable
 import torch
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
     get_sample_gradient_dict
-from cyy_torch_algorithm.data_structure.synced_tensor_dict import \
-    SyncedTensorDict
+
+try:
+    from cyy_torch_algorithm.data_structure.synced_tensor_dict import \
+        SyncedTensorDict
+
+    has_synced_tensor_dict = True
+
+except BaseException:
+    has_synced_tensor_dict = False
 from cyy_torch_toolbox.ml_type import MachineLearningPhase
 from cyy_torch_toolbox.tensor import tensor_to
 from cyy_torch_toolbox.trainer import Trainer
@@ -15,7 +22,7 @@ def compute_perturbation_gradient_difference(
     perturbation_idx_fun: Callable,
     perturbation_fun: Callable,
     result_transform: Callable | None = None,
-) -> dict | SyncedTensorDict:
+) -> dict:
     inferencer = trainer.get_inferencer(
         phase=MachineLearningPhase.Training, deepcopy_model=True
     )
@@ -33,7 +40,7 @@ def compute_perturbation_gradient_difference(
             return True
         return False
 
-    if result_transform is None:
+    if result_transform is None and has_synced_tensor_dict:
         sample_dict = SyncedTensorDict.create(cache_size=128, key_type=None)
     else:
         sample_dict: dict = {}
@@ -55,7 +62,7 @@ def compute_perturbation_gradient_difference(
         result_transform=result_transform,
         result_collection_fun=collect_result,
     )
-    if result_transform is None:
+    if result_transform is None and has_synced_tensor_dict:
         perturbation_dict = SyncedTensorDict.create(cache_size=128, key_type=None)
     else:
         perturbation_dict: dict = {}
@@ -85,7 +92,8 @@ def compute_perturbation_gradient_difference(
         result_transform=result_transform,
         result_collection_fun=collect_result2,
     )
-    if result_transform is None:
+
+    if result_transform is None and has_synced_tensor_dict:
         result = SyncedTensorDict.create(cache_size=128, key_type=None)
     else:
         result: dict = {}

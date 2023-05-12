@@ -84,7 +84,9 @@ def stochastic_inverse_hessian_vector_product(
             if (
                 (diffs <= epsilon).all().bool() and epoch > 1
             ) or iteration_num >= max_iteration:
-                results = torch.stack([cat_tensor_dict(p) / scale for p in cur_products])
+                results = torch.stack(
+                    [cat_tensor_dict(p) / scale for p in cur_products]
+                )
                 raise StopExecutingException()
             hook.set_data_fun(lambda: cur_products)
 
