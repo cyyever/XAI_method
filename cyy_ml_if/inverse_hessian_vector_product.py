@@ -1,13 +1,12 @@
 import copy
 
 import torch
-from cyy_naive_lib.algorithm.mapping_op import get_mapping_values_by_key_order
 from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation.batch_hvp.batch_hvp_hook import \
     BatchHVPHook
 from cyy_torch_toolbox.inferencer import Inferencer
 from cyy_torch_toolbox.ml_type import ExecutorHookPoint, StopExecutingException
-from cyy_torch_toolbox.tensor import cat_tensors_to_vector, tensor_to
+from cyy_torch_toolbox.tensor import cat_tensor_dict, tensor_to
 
 
 def stochastic_inverse_hessian_vector_product(
@@ -27,19 +26,18 @@ def stochastic_inverse_hessian_vector_product(
         scale,
         epsilon,
     )
-
-    vectors = torch.stack(vectors)
+    # vector_tensors = torch.stack([cat_tensor_dict(v) for v in vectors])
 
     def iteration(inferencer, vectors) -> torch.Tensor:
-        cur_products = copy.deepcopy(vectors)
         iteration_num = 0
         hook = BatchHVPHook()
 
         tmp_inferencer = copy.deepcopy(inferencer)
         tmp_inferencer.disable_hook("logger")
         tmp_inferencer.disable_hook("performance_metric_logger")
-        cur_products = tensor_to(cur_products, device=tmp_inferencer.device)
-        vectors = tensor_to(vectors, device=tmp_inferencer.device)
+        # vector_tensors = tensor_to(vector_tensors, device=tmp_inferencer.device)
+        cur_products = copy.deepcopy(vectors)
+        hook.set_data_fun(lambda: cur_products)
 
         results: None | torch.Tensor = None
 
@@ -47,20 +45,30 @@ def stochastic_inverse_hessian_vector_product(
             nonlocal cur_products
             nonlocal results
             nonlocal iteration_num
+            # nonlocal vector_tensors
             nonlocal vectors
-            next_products = (
-                vectors
-                + (1 - dampling_term) * cur_products
-                - cat_tensors_to_vector(
-                    get_mapping_values_by_key_order(
-                        tensor_to(hook.result_dict, device=vectors.device)
+            nonlocal hook
+            assert len(hook.result_dict) == len(vectors)
+            # + (1 - dampling_term) * cur_products
+
+            next_products: list = []
+            for idx in range(len(vectors)):
+                next_products.append({})
+                for k in vectors[idx]:
+                    next_products[idx][k] = (
+                        vectors[idx][k]
+                        + cur_products[idx][k]
+                        - tensor_to(
+                            hook.result_dict[idx][k], device=tmp_inferencer.device
+                        )
+                        / scale
                     )
-                )
-                / scale
-            )
             hook.reset_result()
             diffs = torch.tensor(
-                [torch.dist(a, b) for a, b in zip(cur_products, next_products)]
+                [
+                    torch.dist(cat_tensor_dict(a), cat_tensor_dict(b))
+                    for a, b in zip(cur_products, next_products)
+                ]
             )
             get_logger().error(
                 "diffs is %s, epsilon is %s, epoch is %s, iteration is %s, max_iteration is %s, scale %s",
@@ -76,10 +84,10 @@ def stochastic_inverse_hessian_vector_product(
             if (
                 (diffs <= epsilon).all().bool() and epoch > 1
             ) or iteration_num >= max_iteration:
-                results = cur_products / scale
+                results = torch.stack([cat_tensor_dict(p) / scale for p in cur_products])
                 raise StopExecutingException()
+            hook.set_data_fun(lambda: cur_products)
 
-        hook.set_data_fun(lambda: cur_products)
         tmp_inferencer.append_hook(hook)
         tmp_inferencer.append_named_hook(
             hook_point=ExecutorHookPoint.AFTER_FORWARD,
