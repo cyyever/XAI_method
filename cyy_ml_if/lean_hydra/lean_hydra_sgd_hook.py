@@ -9,10 +9,7 @@ from .lean_hydra_hook import LeanHyDRAHook
 class LeanHyDRASGDHook(LeanHyDRAHook):
     __mom_product = None
 
-    def _after_optimizer_step(self, batch_size, step_skipped, **kwargs):
-        if step_skipped:
-            return
-
+    def _after_batch(self, batch_size, **kwargs):
         counter = TimeCounter()
         optimizer = self._get_optimizer(**kwargs)
 

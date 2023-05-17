@@ -16,11 +16,7 @@ class HyDRASGDHook(HyDRAHook):
         self.__weight_decay = optimizer.param_groups[0]["weight_decay"]
         super()._before_batch(executor=executor, **kwargs)
 
-    def _after_optimizer_step(self, executor, batch_size, step_skipped, **kwargs):
-        if step_skipped:
-            self._sample_gradient_hook.reset_result()
-            return
-
+    def _after_batch(self, executor, batch_size, **kwargs):
         for idx in self._computed_indices:
             instance_gradient = self.sample_gradient_dict.get(idx, None)
             if instance_gradient is not None:

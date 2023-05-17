@@ -36,6 +36,9 @@ def test_api():
     trainer.append_named_hook(
         ExecutorHookPoint.AFTER_FORWARD, "iterate", hydra_obj.iterate
     )
+    trainer.append_named_hook(
+        ExecutorHookPoint.CANCEL_FORWARD, "cancel_forward", hydra_obj.cancel_forward
+    )
     hydra_obj.set_computed_indices([0, 1])
     trainer.train()
     assert id(hydra_obj.optimizer) == id(trainer.get_optimizer())

@@ -46,11 +46,16 @@ class LeanHyDRA:
             executor=None,
         )
         self.__hooks.exec_hooks(
-            hook_point=ExecutorHookPoint.AFTER_OPTIMIZER_STEP,
+            hook_point=ExecutorHookPoint.AFTER_BATCH,
             batch_size=len(sample_indices),
             step_skipped=False,
             model_evaluator=self.model_evaluator,
             optimizer=self.optimizer,
+        )
+
+    def cancel_forward(self, **kwargs):
+        self.__hooks.exec_hooks(
+            hook_point=ExecutorHookPoint.CANCEL_FORWARD,
         )
 
     def get_contribution(self, **kwargs):

@@ -24,9 +24,7 @@ class TracInHook(TracInBaseHook):
         if self.__tracked_indices is not None:
             self._sample_grad_hook.set_computed_indices(self.__tracked_indices)
 
-    def _after_optimizer_step(self, executor, step_skipped, batch_size, **kwargs):
-        if step_skipped:
-            return
+    def _after_batch(self, executor, batch_size, **kwargs):
         trainer = executor
         optimizer = trainer.get_optimizer()
         assert len(optimizer.param_groups) == 1
