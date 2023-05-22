@@ -14,8 +14,10 @@ class LeanHyDRAConfig(DefaultConfig):
         super().__init__(**kwargs)
         self.deterministic_training = DeterministicTraining(self)
 
-    def create_deterministic_trainer(self):
-        return self.deterministic_training.create_deterministic_trainer()
+    def create_deterministic_trainer(self, trainer_fun=None):
+        return self.deterministic_training.create_deterministic_trainer(
+            trainer_fun=trainer_fun
+        )
 
     def recreate_trainer_and_hook(self, test_gradient=None):
         if test_gradient is None:
