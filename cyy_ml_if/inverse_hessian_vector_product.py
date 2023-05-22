@@ -26,7 +26,6 @@ def stochastic_inverse_hessian_vector_product(
         scale,
         epsilon,
     )
-    # vector_tensors = torch.stack([cat_tensor_dict(v) for v in vectors])
 
     def iteration(inferencer, vectors) -> torch.Tensor:
         iteration_num = 0
@@ -35,7 +34,6 @@ def stochastic_inverse_hessian_vector_product(
         tmp_inferencer = copy.deepcopy(inferencer)
         tmp_inferencer.disable_hook("logger")
         tmp_inferencer.disable_hook("performance_metric_logger")
-        # vector_tensors = tensor_to(vector_tensors, device=tmp_inferencer.device)
         cur_products = copy.deepcopy(vectors)
         hook.set_data_fun(lambda: cur_products)
 
@@ -45,18 +43,17 @@ def stochastic_inverse_hessian_vector_product(
             nonlocal cur_products
             nonlocal results
             nonlocal iteration_num
-            # nonlocal vector_tensors
             nonlocal vectors
             nonlocal hook
             assert len(hook.result_dict) == len(vectors)
             # + (1 - dampling_term) * cur_products
 
             next_products: list = []
-            for idx in range(len(vectors)):
+            for idx, vector in enumerate(vectors):
                 next_products.append({})
-                for k in vectors[idx]:
+                for k in vector:
                     next_products[idx][k] = (
-                        vectors[idx][k]
+                        vector[k]
                         + cur_products[idx][k]
                         - tensor_to(
                             hook.result_dict[idx][k], device=tmp_inferencer.device
