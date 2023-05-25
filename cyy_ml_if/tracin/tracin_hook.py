@@ -4,8 +4,9 @@ import os
 import torch
 from cyy_ml_if.tracin.base_hook import TracInBaseHook
 from cyy_naive_lib.log import get_logger
-from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
-    SampleGradientHook
+from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import (
+    SampleGradientHook, sample_dot_product)
+from cyy_torch_toolbox.tensor import tensor_to
 
 
 class TracInHook(TracInBaseHook):
@@ -31,11 +32,6 @@ class TracInHook(TracInBaseHook):
         if not isinstance(optimizer, torch.optim.SGD):
             raise RuntimeError("optimizer is not SGD")
         lr = optimizer.param_groups[0]["lr"]
-        # momentum = optimizer.param_groups[0]["momentum"]
-        # assert momentum == 0
-        # lr = optimizer.param_groups[0]["lr"]
-        # weight_decay = optimizer.param_groups[0]["weight_decay"]
-        # assert weight_decay == 0
 
         assert self.test_grad_dict
         for k, test_grad in self.test_grad_dict.items():
@@ -45,9 +41,16 @@ class TracInHook(TracInBaseHook):
                 if k2 not in self._influence_values[k]:
                     self._influence_values[k][k2] = 0
                 self._influence_values[k][k2] += (
-                    test_grad.cpu().dot(sample_grad.cpu()).item() * lr / batch_size
+                    sample_dot_product(
+                        tensor_to(test_grad, device="cpu"),
+                        tensor_to(sample_grad, device="cpu"),
+                    )
+                    * lr
+                    / batch_size
                 )
+        get_logger().error("before reset")
         self._sample_grad_hook.reset_result()
+        get_logger().error("after reset")
 
     def _after_execute(self, executor, **kwargs):
         if -1 in self._influence_values:

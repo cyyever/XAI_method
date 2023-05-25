@@ -46,7 +46,6 @@ def stochastic_inverse_hessian_vector_product(
             nonlocal vectors
             nonlocal hook
             assert len(hook.result_dict) == len(vectors)
-            # + (1 - dampling_term) * cur_products
 
             next_products: list = []
             for idx, vector in enumerate(vectors):
@@ -56,20 +55,20 @@ def stochastic_inverse_hessian_vector_product(
                         vector[k]
                         + cur_products[idx][k]
                         - tensor_to(
-                            hook.result_dict[idx][k], device=tmp_inferencer.device
+                            hook.result_dict[idx][k],
+                            device=vector[k].device,
+                            non_blocking=True,
                         )
                         / scale
                     )
             hook.reset_result()
-            diffs = torch.tensor(
-                [
-                    torch.dist(cat_tensor_dict(a), cat_tensor_dict(b))
-                    for a, b in zip(cur_products, next_products)
-                ]
+            max_diff = max(
+                torch.dist(cat_tensor_dict(a), cat_tensor_dict(b)).item()
+                for a, b in zip(cur_products, next_products)
             )
             get_logger().info(
-                "diffs is %s, epsilon is %s, epoch is %s, iteration is %s, max_iteration is %s, scale %s",
-                diffs,
+                "max diff is %s, epsilon is %s, epoch is %s, iteration is %s, max_iteration is %s, scale %s",
+                max_diff,
                 epsilon,
                 epoch,
                 iteration_num,
@@ -78,11 +77,9 @@ def stochastic_inverse_hessian_vector_product(
             )
             cur_products = next_products
             iteration_num += 1
-            if (
-                (diffs <= epsilon).all().bool() and epoch > 1
-            ) or iteration_num >= max_iteration:
+            if (max_diff <= epsilon and epoch > 1) or iteration_num >= max_iteration:
                 results = torch.stack(
-                    [cat_tensor_dict(p) / scale for p in cur_products]
+                    [cat_tensor_dict(p).cpu() / scale for p in cur_products]
                 )
                 raise StopExecutingException()
             hook.set_data_fun(lambda: cur_products)
@@ -104,6 +101,7 @@ def stochastic_inverse_hessian_vector_product(
             epoch += 1
         del cur_products
         hook.release_queue()
+        assert results is not None
         return results.cpu()
 
     product_list: torch.Tensor = torch.stack(

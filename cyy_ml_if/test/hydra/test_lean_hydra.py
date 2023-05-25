@@ -6,7 +6,7 @@ from cyy_torch_toolbox.ml_type import ExecutorHookPoint, MachineLearningPhase
 
 def test_api():
     config = DefaultConfig(dataset_name="MNIST", model_name="LeNet5")
-    config.hyper_parameter_config.epoch = 10
+    config.hyper_parameter_config.epoch = 2
     config.cache_transforms = "cpu"
     config.hyper_parameter_config.learning_rate_scheduler = "CosineAnnealingLR"
     # config.hyper_parameter_config.optimizer_name = "Adam"

@@ -1,8 +1,6 @@
 import torch
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
     get_sample_gradient_dict
-from cyy_torch_algorithm.data_structure.synced_tensor_dict import \
-    SyncedTensorDict
 from cyy_torch_toolbox.hook import Hook
 from cyy_torch_toolbox.ml_type import MachineLearningPhase
 
@@ -15,8 +13,9 @@ class TracInBaseHook(Hook):
 
         self.__check_point_gap = check_point_gap
         self.__test_sample_indices = test_sample_indices
-        self.__test_grad_dict = SyncedTensorDict.create()
+        self.__test_grad_dict: dict = {}
         self._influence_values: dict = {}
+        self.__batch_num = 0
 
     @property
     def test_grad_dict(self) -> dict:
@@ -30,22 +29,22 @@ class TracInBaseHook(Hook):
     def _before_execute(self, **kwargs):
         self._influence_values = {}
 
-    def __compute_test_sample_gradients(self, executor, batch_index):
-        if batch_index != 0 and (
-            self.__check_point_gap is not None
-            and batch_index % self.__check_point_gap != 0
+    def __compute_test_sample_gradients(self, executor):
+        if (
+            self.__batch_num != 0
+            and self.__check_point_gap is not None
+            and self.__batch_num % self.__check_point_gap != 0
         ):
             return
         inferencer = executor.get_inferencer(phase=MachineLearningPhase.Test)
-        inferencer.disable_logger()
-        inferencer.disable_performance_metric_logger()
+        inferencer.disable_hook("logger")
+        inferencer.disable_hook("performance_metric")
         if self.__test_sample_indices is None:
             self.__test_grad_dict[-1] = inferencer.get_gradient()
         else:
 
             def collect_result(res_dict):
-                for k, v in res_dict.items():
-                    self.__test_grad_dict[k] = v
+                self.__test_grad_dict |= res_dict
 
             get_sample_gradient_dict(
                 inferencer=inferencer,
@@ -55,4 +54,5 @@ class TracInBaseHook(Hook):
 
     @torch.no_grad()
     def _before_batch(self, executor, batch_index, **kwargs):
-        self.__compute_test_sample_gradients(executor=executor, batch_index=batch_index)
+        self.__compute_test_sample_gradients(executor=executor)
+        self.__batch_num += 1
