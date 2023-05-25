@@ -1,12 +1,23 @@
 import copy
+import math
 
 import torch
 from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation.batch_hvp.batch_hvp_hook import \
     BatchHVPHook
+from cyy_torch_algorithm.computation.sample_computation_hook import dot_product
 from cyy_torch_toolbox.inferencer import Inferencer
 from cyy_torch_toolbox.ml_type import ExecutorHookPoint, StopExecutingException
 from cyy_torch_toolbox.tensor import cat_tensor_dict, tensor_to
+
+
+def __vector_diff(a, b) -> float:
+    product = 0
+    for k, v in a.items():
+        c = (v - b[k]).view(-1)
+
+        product += c.dot(c).item()
+    return math.sqrt(product)
 
 
 def stochastic_inverse_hessian_vector_product(
@@ -63,8 +74,7 @@ def stochastic_inverse_hessian_vector_product(
                     )
             hook.reset_result()
             max_diff = max(
-                torch.dist(cat_tensor_dict(a), cat_tensor_dict(b)).item()
-                for a, b in zip(cur_products, next_products)
+                __vector_diff(a, b) for a, b in zip(cur_products, next_products)
             )
             get_logger().info(
                 "max diff is %s, epsilon is %s, epoch is %s, iteration is %s, max_iteration is %s, scale %s",
