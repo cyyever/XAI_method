@@ -45,7 +45,6 @@ def compute_self_influence_function(
     return get_self_gvp_dict(
         inferencer=inferencer,
         vectors=dict(zip(sorted(computed_indices), products)),
-        computed_indices=computed_indices,
     )
 
 

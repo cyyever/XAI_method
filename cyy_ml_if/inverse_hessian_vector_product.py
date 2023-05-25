@@ -1,11 +1,11 @@
 import copy
+import functools
 import math
 
 import torch
 from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation.batch_hvp.batch_hvp_hook import \
     BatchHVPHook
-from cyy_torch_algorithm.computation.sample_computation_hook import dot_product
 from cyy_torch_toolbox.inferencer import Inferencer
 from cyy_torch_toolbox.ml_type import ExecutorHookPoint, StopExecutingException
 from cyy_torch_toolbox.tensor import cat_tensor_dict, tensor_to
@@ -18,6 +18,13 @@ def __vector_diff(a, b) -> float:
 
         product += c.dot(c).item()
     return math.sqrt(product)
+
+
+def __result_transform(scale, data_index, result, data) -> dict:
+    new_res = {}
+    for k, v in data.items():
+        new_res[k] = v - result[k] / scale
+    return new_res
 
 
 def stochastic_inverse_hessian_vector_product(
@@ -48,6 +55,8 @@ def stochastic_inverse_hessian_vector_product(
         cur_products = copy.deepcopy(vectors)
         hook.set_data_fun(lambda: cur_products)
 
+        hook.set_result_transform(functools.partial(__result_transform, scale))
+
         results: None | torch.Tensor = None
 
         def compute_product(epoch, **kwargs) -> None:
@@ -62,15 +71,10 @@ def stochastic_inverse_hessian_vector_product(
             for idx, vector in enumerate(vectors):
                 next_products.append({})
                 for k in vector:
-                    next_products[idx][k] = (
-                        vector[k]
-                        + cur_products[idx][k]
-                        - tensor_to(
-                            hook.result_dict[idx][k],
-                            device=vector[k].device,
-                            non_blocking=True,
-                        )
-                        / scale
+                    next_products[idx][k] = vector[k] + tensor_to(
+                        hook.result_dict[idx][k],
+                        device=vector[k].device,
+                        non_blocking=True,
                     )
             hook.reset_result()
             max_diff = max(
@@ -96,7 +100,7 @@ def stochastic_inverse_hessian_vector_product(
 
         tmp_inferencer.append_hook(hook)
         tmp_inferencer.append_named_hook(
-            hook_point=ExecutorHookPoint.AFTER_FORWARD,
+            hook_point=ExecutorHookPoint.AFTER_BATCH,
             name="compute_product",
             fun=compute_product,
         )
@@ -112,11 +116,13 @@ def stochastic_inverse_hessian_vector_product(
         del cur_products
         hook.release_queue()
         assert results is not None
-        return results.cpu()
+        return results
 
     product_list: torch.Tensor = torch.stack(
         [iteration(inferencer, vectors) for _ in range(repeated_num)]
     )
+    if repeated_num == 1:
+        return product_list[0]
     std, mean = torch.std_mean(product_list, dim=0)
     get_logger().info("std is %s", torch.norm(std, p=2))
     return mean
