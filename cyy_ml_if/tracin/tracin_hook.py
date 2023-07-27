@@ -5,7 +5,7 @@ import torch
 from cyy_ml_if.tracin.base_hook import TracInBaseHook
 from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import (
-    SampleGradientHook, sample_dot_product)
+    SampleGradientHook, dot_product)
 from cyy_torch_toolbox.tensor import tensor_to
 
 
@@ -41,7 +41,7 @@ class TracInHook(TracInBaseHook):
                 if k2 not in self._influence_values[k]:
                     self._influence_values[k][k2] = 0
                 self._influence_values[k][k2] += (
-                    sample_dot_product(
+                    dot_product(
                         tensor_to(test_grad, device="cpu"),
                         tensor_to(sample_grad, device="cpu"),
                     )

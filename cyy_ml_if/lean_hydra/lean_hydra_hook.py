@@ -2,7 +2,7 @@ import json
 import os
 
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
-    sample_dot_product
+    dot_product
 from cyy_torch_toolbox.tensor import tensor_to
 
 from ..hydra.base_hook import BaseHook
@@ -17,9 +17,7 @@ class LeanHyDRAHook(BaseHook):
             self._batch_hvp_hook.set_vectors([self.__test_gradient])
 
     def _gradient_dot_product(self, result, **kwargs):
-        return sample_dot_product(
-            self.__test_gradient, tensor_to(result, non_blocking=True, device="cpu")
-        )
+        return dot_product(self.__test_gradient, result)
 
     def _after_execute(self, **kwargs) -> None:
         assert self._contributions is not None
