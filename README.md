@@ -1,2 +1,2 @@
-# ML_influence_function_family
-An implementation for various IF based algorithms on Machine Learning
+# XAI_method
+An implementation for various explainable Machine Learning algorithms
