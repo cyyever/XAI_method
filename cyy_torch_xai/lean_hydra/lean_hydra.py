@@ -3,7 +3,6 @@ from cyy_torch_toolbox.hook import HookCollection
 from cyy_torch_toolbox.ml_type import ExecutorHookPoint
 from cyy_torch_toolbox.model_evaluator import ModelEvaluator
 
-from .lean_hydra_adam_hook import LeanHyDRAAdamHook
 from .lean_hydra_sgd_hook import LeanHyDRASGDHook
 
 
@@ -20,8 +19,6 @@ class LeanHyDRA:
         match optimizer:
             case torch.optim.SGD():
                 self._hydra_hook = LeanHyDRASGDHook(test_gradient=test_gradient)
-            case torch.optim.Adam():
-                self._hydra_hook = LeanHyDRAAdamHook(test_gradient=test_gradient)
             case _:
                 raise RuntimeError(f"unsupported optimizer type {type(optimizer)}")
         self.__hooks.append_hook(self._hydra_hook)
