@@ -1,14 +1,13 @@
-from cyy_torch_xai.lean_hydra.lean_hydra import LeanHyDRA
 from cyy_torch_algorithm.retraining import DeterministicTraining
 from cyy_torch_toolbox.default_config import DefaultConfig
 from cyy_torch_toolbox.ml_type import ExecutorHookPoint, MachineLearningPhase
+from cyy_torch_xai.lean_hydra.lean_hydra import LeanHyDRA
 
 
 def test_api():
     config = DefaultConfig(dataset_name="MNIST", model_name="LeNet5")
     config.hyper_parameter_config.epoch = 2
-    config.cache_transforms = "cpu"
-    config.hyper_parameter_config.learning_rate_scheduler = "CosineAnnealingLR"
+    config.hyper_parameter_config.learning_rate_scheduler_name = "CosineAnnealingLR"
     # config.hyper_parameter_config.optimizer_name = "Adam"
     config.hyper_parameter_config.optimizer_name = "SGD"
     config.hyper_parameter_config.learning_rate = 0.01
@@ -27,7 +26,7 @@ def test_api():
         training_set_size=len(trainer.dataset_util),
     )
 
-    def set_optimizer(*args, **kwargs):
+    def set_optimizer(*args, **kwargs) -> None:
         hydra_obj.optimizer = trainer.get_optimizer()
 
     trainer.append_named_hook(
