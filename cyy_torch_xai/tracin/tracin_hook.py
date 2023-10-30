@@ -2,7 +2,7 @@ import json
 import os
 
 import torch
-from cyy_ml_if.tracin.base_hook import TracInBaseHook
+from cyy_torch_xai.tracin.base_hook import TracInBaseHook
 from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import (
     SampleGradientHook, dot_product)

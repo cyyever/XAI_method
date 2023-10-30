@@ -1,4 +1,4 @@
-from cyy_ml_if.lean_hydra.lean_hydra import LeanHyDRA
+from cyy_torch_xai.lean_hydra.lean_hydra import LeanHyDRA
 from cyy_torch_algorithm.retraining import DeterministicTraining
 from cyy_torch_toolbox.default_config import DefaultConfig
 from cyy_torch_toolbox.ml_type import ExecutorHookPoint, MachineLearningPhase

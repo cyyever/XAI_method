@@ -1,4 +1,4 @@
-from cyy_ml_if.hydra.hydra_hook import HyDRAHook
+from cyy_torch_xai.hydra.hydra_hook import HyDRAHook
 
 
 class HyDRASGDHook(HyDRAHook):

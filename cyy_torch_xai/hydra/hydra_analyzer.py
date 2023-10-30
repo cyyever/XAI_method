@@ -1,6 +1,6 @@
 import tempfile
 
-from cyy_ml_if.hydra.hydra_hook import HyDRAHook
+from cyy_torch_xai.hydra.hydra_hook import HyDRAHook
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
     get_sample_gradient_dict
 from cyy_torch_algorithm.data_structure.synced_tensor_dict import \

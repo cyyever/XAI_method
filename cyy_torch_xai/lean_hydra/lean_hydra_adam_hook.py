@@ -1,4 +1,4 @@
-from cyy_ml_if.arithmetic_util import (optional_addition,
+from cyy_torch_xai.arithmetic_util import (optional_addition,
                                        optional_multiplication,
                                        optional_subtraction)
 # from cyy_naive_lib.log import get_logger

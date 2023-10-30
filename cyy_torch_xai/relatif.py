@@ -7,8 +7,8 @@ from cyy_torch_algorithm.influence_function_family.util import \
 from cyy_torch_toolbox.ml_type import MachineLearningPhase
 from cyy_torch_toolbox.trainer import Trainer
 
-from cyy_ml_if.influence_function import get_default_inverse_hvp_arguments
-from cyy_ml_if.inverse_hessian_vector_product import \
+from cyy_torch_xai.influence_function import get_default_inverse_hvp_arguments
+from cyy_torch_xai.inverse_hessian_vector_product import \
     stochastic_inverse_hessian_vector_product
 
 

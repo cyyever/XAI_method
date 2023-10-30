@@ -4,22 +4,22 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="cyy_ml_if",
+    name="cyy_torch_xai",
     author="cyy",
     version="0.1",
     author_email="cyyever@outlook.com",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/cyyever/ML_influence_function_family",
+    url="https://github.com/cyyever/XAI_method",
     packages=[
-        "cyy_ml_if",
-        "cyy_ml_if/hydra",
-        "cyy_ml_if/lean_hydra",
-        "cyy_ml_if/tracin",
+        "cyy_torch_xai",
+        "cyy_torch_xai/hydra",
+        "cyy_torch_xai/lean_hydra",
+        "cyy_torch_xai/tracin",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.10",
+    python_requires=">=3.11",
 )
