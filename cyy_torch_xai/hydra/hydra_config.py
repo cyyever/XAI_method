@@ -2,10 +2,12 @@
 
 
 import torch.optim
-from cyy_torch_algorithm.hydra.hydra_adam_hook import HyDRAAdamHook
-from cyy_torch_algorithm.hydra.hydra_sgd_hook import HyDRASGDHook
+from cyy_torch_toolbox.dataset.sampler import DatasetSampler
 from cyy_torch_toolbox.default_config import DefaultConfig
 from cyy_torch_toolbox.ml_type import MachineLearningPhase
+
+from .hydra_adam_hook import HyDRAAdamHook
+from .hydra_sgd_hook import HyDRASGDHook
 
 
 class HyDRAConfig(DefaultConfig):
@@ -38,9 +40,12 @@ class HyDRAConfig(DefaultConfig):
         trainer.append_hook(hydra_hook)
 
         if self.tracking_percentage is not None:
-            subset_dict = trainer.dataset_collection.get_dataset_util(
-                phase=MachineLearningPhase.Training
-            ).iid_sample(self.tracking_percentage)
+            subset_dict = DatasetSampler(
+                trainer.dataset_collection.get_dataset_util(
+                    phase=MachineLearningPhase.Training
+                )
+            ).iid_sample_indices(self.tracking_percentage)
+
             tracking_indices = sum(subset_dict.values(), [])
             hydra_hook.set_computed_indices(tracking_indices)
         if return_hydra_hook:
