@@ -115,7 +115,7 @@ class HyDRAHook(Hook):
                 stripable=True,
             )
 
-    def set_computed_indices(self, computed_indices):
+    def set_computed_indices(self, computed_indices) -> None:
         self._computed_indices = set(computed_indices)
         self._sample_gradient_hook.set_computed_indices(computed_indices)
 

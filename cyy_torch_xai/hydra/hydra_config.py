@@ -1,13 +1,13 @@
 import torch.optim
 from cyy_torch_toolbox.dataset.sampler import DatasetSampler
-from cyy_torch_toolbox.default_config import DefaultConfig
+from cyy_torch_toolbox.default_config import Config
 from cyy_torch_toolbox.ml_type import MachineLearningPhase
 
 from .hydra_adam_hook import HyDRAAdamHook
 from .hydra_sgd_hook import HyDRASGDHook
 
 
-class HyDRAConfig(DefaultConfig):
+class HyDRAConfig(Config):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.cache_size: int = 128
@@ -43,6 +43,6 @@ class HyDRAConfig(DefaultConfig):
                 )
             ).iid_sample_indices(self.tracking_percentage)
 
-            tracking_indices = sum(subset_dict.values(), [])
+            tracking_indices: list = sum(subset_dict.values(), [])
             hydra_hook.set_computed_indices(tracking_indices)
         return {"trainer": trainer, "hydra_hook": hydra_hook}
