@@ -51,15 +51,13 @@ def compute_self_influence_function(
 def compute_influence_function(
     trainer: Trainer,
     computed_indices: set | None,
-    test_gradient: torch.Tensor | None = None,
     inverse_hvp_arguments: None | dict = None,
 ) -> dict:
-    if test_gradient is None:
-        inferencer = trainer.get_inferencer(
-            phase=MachineLearningPhase.Test, deepcopy_model=True
-        )
-        test_gradient = inferencer.get_gradient()
-        del inferencer
+    inferencer = trainer.get_inferencer(
+        phase=MachineLearningPhase.Test, deepcopy_model=True
+    )
+    test_gradient = inferencer.get_gradient()
+    del inferencer
 
     inferencer = trainer.get_inferencer(
         phase=MachineLearningPhase.Training, deepcopy_model=True
