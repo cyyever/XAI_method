@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-
-
 import torch.optim
 from cyy_torch_toolbox.dataset.sampler import DatasetSampler
 from cyy_torch_toolbox.default_config import DefaultConfig
@@ -11,14 +8,14 @@ from .hydra_sgd_hook import HyDRASGDHook
 
 
 class HyDRAConfig(DefaultConfig):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.cache_size: int = 128
-        self.tracking_percentage: float = None
+        self.tracking_percentage: float | None = None
         self.use_hessian: bool = False
         self.use_approximation: bool = True
 
-    def create_trainer(self, return_hydra_hook=False, **kwargs):
+    def create_trainer(self, **kwargs) -> dict:
         trainer = super().create_trainer(**kwargs)
 
         optimizer = trainer.get_optimizer()
@@ -48,6 +45,4 @@ class HyDRAConfig(DefaultConfig):
 
             tracking_indices = sum(subset_dict.values(), [])
             hydra_hook.set_computed_indices(tracking_indices)
-        if return_hydra_hook:
-            return trainer, hydra_hook
-        return trainer
+        return {"trainer": trainer, "hydra_hook": hydra_hook}

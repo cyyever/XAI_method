@@ -9,12 +9,11 @@ from .lean_hydra_sgd_hook import LeanHyDRASGDHook
 class LeanHyDRA:
     def __init__(
         self,
-        model,
-        loss_function,
+        model_evaluator: ModelEvaluator,
         optimizer,
         test_gradient,
         training_set_size,
-    ):
+    ) -> None:
         self.__hooks = HookCollection()
         match optimizer:
             case torch.optim.SGD():
@@ -23,17 +22,17 @@ class LeanHyDRA:
                 raise RuntimeError(f"unsupported optimizer type {type(optimizer)}")
         self.__hooks.append_hook(self._hydra_hook)
         self.optimizer = optimizer
-        self.model_evaluator = ModelEvaluator(model, loss_function)
+        self.model_evaluator = model_evaluator
         self.__hooks.exec_hooks(
             hook_point=ExecutorHookPoint.BEFORE_EXECUTE,
             training_set_size=training_set_size,
         )
         self.__end_exe: bool = False
 
-    def set_computed_indices(self, computed_indices):
+    def set_computed_indices(self, computed_indices) -> None:
         self._hydra_hook.set_computed_indices(computed_indices=computed_indices)
 
-    def iterate(self, sample_indices, inputs, targets, **kwargs):
+    def iterate(self, sample_indices, inputs, targets, **kwargs) -> None:
         self.__hooks.exec_hooks(
             hook_point=ExecutorHookPoint.AFTER_FORWARD,
             model_evaluator=self.model_evaluator,
@@ -50,7 +49,7 @@ class LeanHyDRA:
             optimizer=self.optimizer,
         )
 
-    def cancel_forward(self, **kwargs):
+    def cancel_forward(self, **kwargs) -> None:
         self.__hooks.exec_hooks(
             hook_point=ExecutorHookPoint.CANCEL_FORWARD,
         )

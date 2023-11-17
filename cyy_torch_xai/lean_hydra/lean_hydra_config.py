@@ -10,7 +10,7 @@ from .lean_hydra_sgd_hook import LeanHyDRASGDHook
 
 
 class LeanHyDRAConfig(DefaultConfig):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.deterministic_training = DeterministicTraining(self)
 
@@ -21,7 +21,7 @@ class LeanHyDRAConfig(DefaultConfig):
             trainer_fun=trainer_fun
         )
 
-    def recreate_trainer_and_hook(self, test_gradient=None) -> tuple:
+    def _create_hook(self, test_gradient: None | dict = None) -> tuple:
         assert self.deterministic_training.last_trainer is not None
         if test_gradient is None:
             tester = self.deterministic_training.last_trainer.get_inferencer(
@@ -35,7 +35,10 @@ class LeanHyDRAConfig(DefaultConfig):
                 hydra_hook = LeanHyDRASGDHook(test_gradient=test_gradient)
             case _:
                 raise NotImplementedError(f"Unsupported optimizer {type(optimizer)}")
+        return hydra_hook, test_gradient
+
+    def recreate_trainer_and_hook(self, test_gradient: None | dict = None) -> dict:
+        hydra_hook, test_gradient = self._create_hook(test_gradient=test_gradient)
         trainer = self.deterministic_training.recreate_trainer()
         trainer.append_hook(hydra_hook)
-
-        return trainer, hydra_hook, test_gradient
+        return {"trainer": trainer, "hook": hydra_hook, "test_gradient": test_gradient}

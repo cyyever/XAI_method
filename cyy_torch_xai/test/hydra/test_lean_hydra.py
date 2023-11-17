@@ -1,11 +1,11 @@
 from cyy_torch_algorithm.retraining import DeterministicTraining
-from cyy_torch_toolbox.default_config import DefaultConfig
+from cyy_torch_toolbox.default_config import Config
 from cyy_torch_toolbox.ml_type import ExecutorHookPoint, MachineLearningPhase
 from cyy_torch_xai.lean_hydra.lean_hydra import LeanHyDRA
 
 
-def test_api():
-    config = DefaultConfig(dataset_name="MNIST", model_name="LeNet5")
+def test_api() -> None:
+    config = Config(dataset_name="MNIST", model_name="LeNet5")
     config.hyper_parameter_config.epoch = 2
     config.hyper_parameter_config.learning_rate_scheduler_name = "CosineAnnealingLR"
     # config.hyper_parameter_config.optimizer_name = "Adam"
@@ -19,8 +19,7 @@ def test_api():
     ).get_gradient()
     trainer = deterministic_training.recreate_trainer()
     hydra_obj = LeanHyDRA(
-        model=trainer.model,
-        loss_function=trainer.loss_fun,
+        model_evaluator=trainer.model_evaluator,
         optimizer=trainer.get_optimizer(),
         test_gradient=test_gradient,
         training_set_size=len(trainer.dataset_util),
