@@ -2,14 +2,14 @@ from typing import Any, Callable
 
 import torch.optim
 from cyy_torch_algorithm.retraining import DeterministicTraining
-from cyy_torch_toolbox.default_config import DefaultConfig
+from cyy_torch_toolbox.default_config import Config
 from cyy_torch_toolbox.ml_type import MachineLearningPhase
 from cyy_torch_toolbox.trainer import Trainer
 
 from .lean_hydra_sgd_hook import LeanHyDRASGDHook
 
 
-class LeanHyDRAConfig(DefaultConfig):
+class LeanHyDRAConfig(Config):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.deterministic_training = DeterministicTraining(self)
@@ -22,6 +22,7 @@ class LeanHyDRAConfig(DefaultConfig):
         )
 
     def _create_hook(self, test_gradient: dict) -> Any:
+        assert self.deterministic_training.last_trainer is not None
         optimizer = self.deterministic_training.last_trainer.get_optimizer()
         match optimizer:
             case torch.optim.SGD():
