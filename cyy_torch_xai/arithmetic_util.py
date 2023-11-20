@@ -8,13 +8,11 @@ def check_overflow_and_underflow(tensor):
     if tensor is None:
         return
     if torch.any(torch.isnan(tensor)):
-        get_logger().error("find nan tensor %s", tensor.cpu())
         get_logger().error("traceback:%s", str(traceback.extract_stack(limit=10)))
-        assert False
+        raise AssertionError(f"find nan tensor {tensor.cpu()}")
     if torch.any(torch.isinf(tensor)):
-        get_logger().error("find inf tensor %s", tensor.cpu())
         get_logger().error("traceback:%s", str(traceback.extract_stack(limit=10)))
-        assert False
+        raise AssertionError(f"find inf tensor {tensor.cpu()}")
 
 
 def optional_addition(*args):
