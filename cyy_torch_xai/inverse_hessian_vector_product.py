@@ -8,7 +8,7 @@ from cyy_torch_algorithm.computation.batch_hvp.batch_hvp_hook import \
     BatchHVPHook
 from cyy_torch_toolbox.inferencer import Inferencer
 from cyy_torch_toolbox.ml_type import ExecutorHookPoint, StopExecutingException
-from cyy_torch_toolbox.tensor import cat_tensor_dict, tensor_to
+from cyy_torch_toolbox.tensor import tensor_to
 
 
 def __vector_diff(a, b) -> float:
@@ -35,7 +35,7 @@ def stochastic_inverse_hessian_vector_product(
     dampling_term: float = 0,
     scale: float = 1,
     epsilon: float = 0.0001,
-) -> torch.Tensor:
+) -> list[dict]:
     get_logger().info(
         "repeated_num is %s,max_iteration is %s,dampling term is %s,scale is %s,epsilon is %s",
         repeated_num,
@@ -45,7 +45,7 @@ def stochastic_inverse_hessian_vector_product(
         epsilon,
     )
 
-    def iteration(inferencer, vectors) -> torch.Tensor:
+    def iteration(inferencer, vectors) -> list:
         iteration_num = 0
         hook = BatchHVPHook()
 
@@ -57,7 +57,7 @@ def stochastic_inverse_hessian_vector_product(
 
         hook.set_result_transform(functools.partial(__result_transform, scale))
 
-        results: None | torch.Tensor = None
+        results: None | list = None
 
         def compute_product(epoch, **kwargs) -> None:
             nonlocal cur_products
@@ -92,9 +92,11 @@ def stochastic_inverse_hessian_vector_product(
             cur_products = next_products
             iteration_num += 1
             if (max_diff <= epsilon and epoch > 1) or iteration_num >= max_iteration:
-                results = torch.stack(
-                    [cat_tensor_dict(p).cpu() / scale for p in cur_products]
-                )
+                results = [
+                    {k: v / scale}
+                    for product in cur_products
+                    for k, v in product.items()
+                ]
                 raise StopExecutingException()
             hook.set_data(cur_products)
 
@@ -118,11 +120,20 @@ def stochastic_inverse_hessian_vector_product(
         assert results is not None
         return results
 
-    product_list: torch.Tensor = torch.stack(
-        [iteration(inferencer, vectors) for _ in range(repeated_num)]
-    )
+    product_list: list = [iteration(inferencer, vectors) for _ in range(repeated_num)]
     if repeated_num == 1:
         return product_list[0]
-    std, mean = torch.std_mean(product_list, dim=0)
-    get_logger().info("std is %s", torch.norm(std, p=2))
-    return mean
+    tmp = [None] * len(vectors)
+    for products in product_list:
+        for idx, product in enumerate(products):
+            if tmp[idx] is None:
+                tmp[idx] = {k: [v] for k, v in product.items()}
+            else:
+                for k, v in product.items():
+                    tmp[idx][k].append(v)
+    for product in tmp:
+        for k, v in product:
+            std, mean = torch.std_mean(v, dim=0)
+            product[k] = mean
+            get_logger().info("std is %s", torch.norm(std, p=2))
+    return tmp

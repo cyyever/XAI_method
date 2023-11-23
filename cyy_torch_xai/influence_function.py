@@ -59,16 +59,14 @@ def compute_influence_function(
     )
     if inverse_hvp_arguments is None:
         inverse_hvp_arguments = get_default_inverse_hvp_arguments()
-    product = (
-        stochastic_inverse_hessian_vector_product(
-            inferencer, vectors=[test_gradient], **inverse_hvp_arguments
-        )
-        / trainer.dataset_size
-    )[0].cpu()
+    product = stochastic_inverse_hessian_vector_product(
+        inferencer, vectors=[test_gradient], **inverse_hvp_arguments
+    )[0]
 
-    return get_sample_gvp_dict(
+    res = get_sample_gvp_dict(
         inferencer=inferencer, vector=product, computed_indices=computed_indices
     )
+    return {k: v / trainer.dataset_size for k, v in res.items()}
 
 
 def compute_perturbation_influence_function(
@@ -88,8 +86,6 @@ def compute_perturbation_influence_function(
     if inverse_hvp_arguments is None:
         inverse_hvp_arguments = get_default_inverse_hvp_arguments()
 
-    # trainer.offload_from_gpu()
-
     product = (
         -stochastic_inverse_hessian_vector_product(
             inferencer, vectors=[test_gradient], **inverse_hvp_arguments
@@ -106,5 +102,5 @@ def compute_perturbation_influence_function(
         trainer=trainer,
         perturbation_idx_fun=perturbation_idx_fun,
         perturbation_fun=perturbation_fun,
-        result_transform=functools.partial(dot_product, vector=product),
+        result_transform=functools.partial(dot_product, b=product),
     )
