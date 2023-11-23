@@ -1,7 +1,6 @@
 import functools
 from typing import Callable
 
-import torch
 from cyy_naive_lib.algorithm.mapping_op import get_mapping_values_by_key_order
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import (
     dot_product, get_sample_gradient_dict, get_sample_gvp_dict,
@@ -9,9 +8,9 @@ from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import
 from cyy_torch_toolbox.ml_type import MachineLearningPhase
 from cyy_torch_toolbox.trainer import Trainer
 
-from cyy_torch_xai.inverse_hessian_vector_product import \
+from .inverse_hessian_vector_product import \
     stochastic_inverse_hessian_vector_product
-from cyy_torch_xai.util import compute_perturbation_gradient_difference
+from .util import compute_perturbation_gradient_difference, get_test_gradient
 
 
 def get_default_inverse_hvp_arguments() -> dict:
@@ -53,11 +52,7 @@ def compute_influence_function(
     computed_indices: set | None,
     inverse_hvp_arguments: None | dict = None,
 ) -> dict:
-    inferencer = trainer.get_inferencer(
-        phase=MachineLearningPhase.Test, deepcopy_model=True
-    )
-    test_gradient = inferencer.get_gradient()
-    del inferencer
+    test_gradient = get_test_gradient(trainer=trainer)
 
     inferencer = trainer.get_inferencer(
         phase=MachineLearningPhase.Training, deepcopy_model=True
@@ -80,15 +75,12 @@ def compute_perturbation_influence_function(
     trainer: Trainer,
     perturbation_idx_fun: Callable,
     perturbation_fun: Callable,
-    test_gradient: torch.Tensor | None = None,
+    test_gradient: dict | None = None,
     inverse_hvp_arguments: None | dict = None,
     grad_diff=None,
 ) -> dict:
     if test_gradient is None:
-        inferencer = trainer.get_inferencer(
-            phase=MachineLearningPhase.Test, deepcopy_model=True
-        )
-        test_gradient = inferencer.get_gradient()
+        test_gradient = get_test_gradient(trainer=trainer)
 
     inferencer = trainer.get_inferencer(
         phase=MachineLearningPhase.Training, deepcopy_model=True
@@ -96,7 +88,7 @@ def compute_perturbation_influence_function(
     if inverse_hvp_arguments is None:
         inverse_hvp_arguments = get_default_inverse_hvp_arguments()
 
-    trainer.offload_from_gpu()
+    # trainer.offload_from_gpu()
 
     product = (
         -stochastic_inverse_hessian_vector_product(

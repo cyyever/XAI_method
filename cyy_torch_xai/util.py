@@ -17,6 +17,13 @@ from cyy_torch_toolbox.tensor import tensor_to
 from cyy_torch_toolbox.trainer import Trainer
 
 
+def get_test_gradient(trainer: Trainer) -> dict:
+    inferencer = trainer.get_inferencer(
+        phase=MachineLearningPhase.Test, deepcopy_model=True
+    )
+    return inferencer.get_gradient()
+
+
 def compute_perturbation_gradient_difference(
     trainer: Trainer,
     perturbation_idx_fun: Callable,
