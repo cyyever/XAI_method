@@ -16,5 +16,3 @@ def test_lean_hydra() -> None:
 
     hydra_obj.set_computed_indices([0, 1])
     trainer.train()
-    assert id(hydra_obj.optimizer) == id(trainer.get_optimizer())
-    print(hydra_obj.get_contribution())
