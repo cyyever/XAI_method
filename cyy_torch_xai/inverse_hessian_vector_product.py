@@ -53,7 +53,7 @@ def stochastic_inverse_hessian_vector_product(
         tmp_inferencer.disable_hook("logger")
         tmp_inferencer.disable_hook("performance_metric_logger")
         cur_products = copy.deepcopy(vectors)
-        hook.set_data_fun(lambda: cur_products)
+        hook.set_data(cur_products)
 
         hook.set_result_transform(functools.partial(__result_transform, scale))
 
@@ -96,7 +96,7 @@ def stochastic_inverse_hessian_vector_product(
                     [cat_tensor_dict(p).cpu() / scale for p in cur_products]
                 )
                 raise StopExecutingException()
-            hook.set_data_fun(lambda: cur_products)
+            hook.set_data(cur_products)
 
         tmp_inferencer.append_hook(hook)
         tmp_inferencer.append_named_hook(
