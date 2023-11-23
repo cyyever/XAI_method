@@ -2,14 +2,13 @@ from typing import Callable
 
 import torch
 from cyy_naive_lib.log import get_logger
-from cyy_torch_algorithm.influence_function_family.util import \
-    compute_perturbation_gradient_difference
 from cyy_torch_toolbox.ml_type import MachineLearningPhase
 from cyy_torch_toolbox.trainer import Trainer
 
-from cyy_torch_xai.influence_function import get_default_inverse_hvp_arguments
-from cyy_torch_xai.inverse_hessian_vector_product import \
+from .influence_function import get_default_inverse_hvp_arguments
+from .inverse_hessian_vector_product import \
     stochastic_inverse_hessian_vector_product
+from .util import compute_perturbation_gradient_difference
 
 
 def compute_perturbation_relatif(
