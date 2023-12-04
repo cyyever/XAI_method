@@ -264,7 +264,7 @@ class HyDRAHook(Hook):
             hyper_gradient = self._decode_hyper_gradient_tensors(value)[0]
             contribution[index] = (
                 -(test_gradient @ hyper_gradient) / self._training_set_size
-            )
+            ).item()
             tensor_dict[index] = hyper_gradient
         assert contribution
         json_name = "hessian_hydra_contribution.json"
