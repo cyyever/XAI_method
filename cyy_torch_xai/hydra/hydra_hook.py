@@ -81,7 +81,7 @@ class HyDRAHook(Hook):
             get_logger().info("only compute %s indices", len(self._computed_indices))
         with open(
             os.path.join(self.get_save_dir(trainer), "tracking_indices.json"),
-            mode="wb",
+            mode="wt",
         ) as f:
             pickle.dump(self._computed_indices, f)
         if self.use_hessian:
@@ -266,24 +266,16 @@ class HyDRAHook(Hook):
                 -(dot_product(test_gradient, hyper_gradient)) / self._training_set_size
             )
             tensor_dict[index] = hyper_gradient
+        assert contribution
+        json_name = "hessian_hydra_contribution.json"
         if use_approximation:
-            with open(
-                os.path.join(
-                    self.get_save_dir(trainer), "approx_hydra_contribution.json"
-                ),
-                mode="wt",
-                encoding="utf-8",
-            ) as f:
-                json.dump(contribution, f)
-        else:
-            with open(
-                os.path.join(
-                    self.get_save_dir(trainer), "hessian_hydra_contribution.json"
-                ),
-                mode="wt",
-                encoding="utf-8",
-            ) as f:
-                json.dump(contribution, f)
+            json_name = "approx_hydra_contribution."
+        with open(
+            os.path.join(self.get_save_dir(trainer), json_name),
+            mode="wt",
+            encoding="utf-8",
+        ) as f:
+            json.dump(contribution, f)
         with open(
             os.path.join(self.get_save_dir(trainer), "training_set_size"), "wb"
         ) as f:
