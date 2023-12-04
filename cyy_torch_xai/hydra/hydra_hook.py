@@ -284,7 +284,6 @@ class HyDRAHook(Hook):
                 encoding="utf-8",
             ) as f:
                 json.dump(contribution, f)
-        tensor_dict.release()
         with open(
             os.path.join(self.get_save_dir(trainer), "training_set_size"), "wb"
         ) as f:
