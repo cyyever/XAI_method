@@ -83,7 +83,7 @@ class HyDRAHook(Hook):
             os.path.join(self.get_save_dir(trainer), "tracking_indices.json"),
             mode="wt",
         ) as f:
-            pickle.dump(self._computed_indices, f)
+            json.dump(list(self._computed_indices), f)
         if self.use_hessian:
             get_logger().info("use hessian to compute hyper-gradients")
             self._hessian_hyper_gradient_dict = HyDRAHook.create_hypergradient_dict(
@@ -189,6 +189,7 @@ class HyDRAHook(Hook):
     def _do_all_delayed_computation(self):
         if self.use_approximation:
             delayed_keys = list(self._delayed_approximation_computations.keys())
+            assert delayed_keys
             for chunk in split_list_to_chunks(delayed_keys, self._cache_size):
                 self._get_hyper_gradient_dict(True).prefetch(chunk)
                 for k in chunk:
@@ -308,10 +309,8 @@ class HyDRAHook(Hook):
 
     def foreach_hyper_gradient(self, use_approximation: bool, callback):
         self._do_all_delayed_computation()
-        approximation_hyper_gradient_dir = self._get_hyper_gradient_dict(
-            use_approximation
-        )
-        for index, _ in approximation_hyper_gradient_dir.items():
+        hyper_gradient_dir = self._get_hyper_gradient_dict(use_approximation)
+        for index, _ in hyper_gradient_dir.items():
             hyper_gradient = self.get_hyper_gradient(index, use_approximation)
             callback(index, hyper_gradient)
 
