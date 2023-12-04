@@ -266,7 +266,6 @@ class HyDRAHook(Hook):
                 -(dot_product(test_gradient, hyper_gradient)) / self._training_set_size
             )
             tensor_dict[index] = hyper_gradient
-        tensor_dict.tensor_dict.flush(True)
         if use_approximation:
             with open(
                 os.path.join(
