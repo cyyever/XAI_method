@@ -9,12 +9,14 @@ from cyy_naive_lib.log import get_logger
 from cyy_naive_lib.time_counter import TimeCounter
 from cyy_torch_algorithm.computation.batch_hvp.batch_hvp_hook import \
     BatchHVPHook
+from cyy_torch_algorithm.computation.sample_computation_hook import dot_product
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
     SampleGradientHook
 from cyy_torch_algorithm.data_structure.synced_tensor_dict import \
     SyncedTensorDict
 from cyy_torch_toolbox.hook import Hook
 from cyy_torch_toolbox.ml_type import ExecutorHookPoint, MachineLearningPhase
+from cyy_torch_toolbox.tensor import tensor_to
 
 
 class HyDRAHook(Hook):
@@ -259,12 +261,12 @@ class HyDRAHook(Hook):
         self._do_all_delayed_computation()
         get_logger().info("end do _do_all_delayed_computation")
         tensor_dict = self._get_hyper_gradient_dict(use_approximation)
-        test_gradient = test_gradient.cpu()
+        test_gradient = tensor_to(test_gradient, device="cpu")
         for index, value in tensor_dict.items():
             hyper_gradient = self._decode_hyper_gradient_tensors(value)[0]
             contribution[index] = (
-                -(test_gradient @ hyper_gradient.cpu()) / self._training_set_size
-            ).data.item()
+                -(dot_product(test_gradient, hyper_gradient)) / self._training_set_size
+            )
             tensor_dict[index] = hyper_gradient
         tensor_dict.tensor_dict.flush(True)
         if use_approximation:
