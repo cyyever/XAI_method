@@ -294,7 +294,11 @@ class HyDRAHook(Hook):
         if not hyper_gradients:
             return hessian_vector_product_dict
         with TimeCounter(log_prefix=f"hvp chunk size {len(hyper_gradients)}"):
-            self._hvp_hook.add_task(data=hyper_gradients, **self._hvp_arguments)
+            self._hvp_hook.add_task(
+                data=hyper_gradients,
+                batch_index=0,
+                **self._hvp_arguments,
+            )
             hessian_vector_products = self._hvp_hook.result_dict[0]
             self._hvp_hook.reset_result()
             assert len(hyper_gradients) == len(hessian_vector_products)
