@@ -218,11 +218,11 @@ class HyDRAHook(Hook):
         if torch.any(torch.isnan(tensor)):
             get_logger().error("find nan tensor %s", tensor.cpu())
             get_logger().error("traceback:%s", str(traceback.extract_stack(limit=10)))
-            assert False
+            raise AssertionError()
         if torch.any(torch.isinf(tensor)):
             get_logger().error("find inf tensor %s", tensor.cpu())
             get_logger().error("traceback:%s", str(traceback.extract_stack(limit=10)))
-            assert False
+            raise AssertionError()
 
     def _optional_addition(self, *args):
         res = None
@@ -269,7 +269,7 @@ class HyDRAHook(Hook):
         assert contribution
         json_name = "hessian_hydra_contribution.json"
         if use_approximation:
-            json_name = "approx_hydra_contribution."
+            json_name = "approx_hydra_contribution.json"
         with open(
             os.path.join(self.get_save_dir(trainer), json_name),
             mode="wt",
