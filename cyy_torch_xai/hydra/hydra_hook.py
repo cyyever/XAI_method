@@ -299,12 +299,13 @@ class HyDRAHook(Hook):
                 batch_index=0,
                 **self._hvp_arguments,
             )
-            hessian_vector_products = self._hvp_hook.result_dict[0]
+            hessian_vector_products = self._hvp_hook.result_dict
+            hessian_vector_product_dict = {
+                gradient_idx: hessian_vector_products[product_idx]
+                for product_idx, gradient_idx in enumerate(hyper_gradient_indices)
+            }
             self._hvp_hook.reset_result()
-            assert len(hyper_gradients) == len(hessian_vector_products)
-            hessian_vector_product_dict = dict(
-                zip(hyper_gradient_indices, hessian_vector_products)
-            )
+            assert not self._hvp_hook.result_dict
             return hessian_vector_product_dict
 
     def get_hyper_gradient(self, index, use_approximation):

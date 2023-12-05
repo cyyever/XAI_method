@@ -50,6 +50,8 @@ class HyDRASGDHook(HyDRAHook):
         hyper_gradient, mom_gradient = self._get_hyper_gradient_tensors(
             index, use_approximation, none_num=2
         )
+        if hessian_vector_product is not None:
+            hessian_vector_product = hessian_vector_product.cpu()
 
         if use_approximation:
             argument_dict = self._delayed_approximation_computations
