@@ -22,7 +22,7 @@ class HyDRASGDHook(HyDRAHook):
             instance_gradient = self.sample_gradient_dict.get(idx, None)
             if instance_gradient is not None:
                 instance_gradient = (
-                    cat_tensor_dict(instance_gradient).to(self._trainer.device)
+                    cat_tensor_dict(instance_gradient).cpu()
                     * self._training_set_size
                     / batch_size
                 )
