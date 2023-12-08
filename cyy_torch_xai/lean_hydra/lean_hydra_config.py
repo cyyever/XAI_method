@@ -2,9 +2,7 @@ from typing import Any, Callable
 
 import torch.optim
 from cyy_torch_algorithm.retraining import DeterministicTraining
-from cyy_torch_toolbox.default_config import Config
-from cyy_torch_toolbox.ml_type import MachineLearningPhase
-from cyy_torch_toolbox.trainer import Trainer
+from cyy_torch_toolbox import Config, MachineLearningPhase, Trainer
 
 from .lean_hydra_sgd_hook import LeanHyDRASGDHook
 

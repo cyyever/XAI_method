@@ -1,7 +1,6 @@
 import torch.optim
+from cyy_torch_toolbox import Config, MachineLearningPhase
 from cyy_torch_toolbox.dataset.sampler import DatasetSampler
-from cyy_torch_toolbox.default_config import Config
-from cyy_torch_toolbox.ml_type import MachineLearningPhase
 
 from .hydra_adam_hook import HyDRAAdamHook
 from .hydra_sgd_hook import HyDRASGDHook
