@@ -1,4 +1,4 @@
-from cyy_torch_toolbox.default_config import Config
+from cyy_torch_toolbox import Config
 from cyy_torch_xai.influence_function import compute_influence_function
 
 
