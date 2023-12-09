@@ -1,7 +1,15 @@
+import importlib
+
 from cyy_torch_xai.lean_hydra.lean_hydra_config import LeanHyDRAConfig
+
+has_cyy_torch_vision: bool = importlib.util.find_spec("cyy_torch_vision") is not None
 
 
 def test_lean_hydra() -> None:
+    if not has_cyy_torch_vision:
+        return
+    import cyy_torch_vision  # noqa: F401
+
     config = LeanHyDRAConfig(dataset_name="MNIST", model_name="LeNet5")
     config.hyper_parameter_config.epoch = 2
     # config.hyper_parameter_config.learning_rate_scheduler_name = "CosineAnnealingLR"
