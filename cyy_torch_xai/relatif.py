@@ -45,11 +45,11 @@ def compute_perturbation_relatif(
     )
     batch_size = 32
     for perturbation_idx, v in grad_diff.items():
-        v_norm = torch.linalg.vector_norm(v)
+        v_norm = v.norm()
         # normalize to 1 makes convergence easier
         if v_norm.item() > 1:
             v = v / v_norm
-        get_logger().error("v norm is %s", torch.linalg.vector_norm(v))
+        get_logger().error("v norm is %s", v_norm)
         accumulated_indices.append(perturbation_idx)
         accumulated_vectors.append(v)
         if len(accumulated_indices) != batch_size:
@@ -58,9 +58,7 @@ def compute_perturbation_relatif(
             inferencer, vectors=accumulated_vectors, **inverse_hvp_arguments
         )
         for idx, product in zip(accumulated_indices, products):
-            res[idx] = (
-                -test_gradient.dot(product) / torch.linalg.vector_norm(product)
-            ).item()
+            res[idx] = (-test_gradient.dot(product) / product.norm()).item()
         accumulated_indices = []
         accumulated_vectors = []
     if accumulated_indices:

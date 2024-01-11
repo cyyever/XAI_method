@@ -6,9 +6,10 @@ import torch
 from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation.batch_hvp.batch_hvp_hook import \
     BatchHVPHook
-from cyy_torch_toolbox.inferencer import Inferencer
-from cyy_torch_toolbox.ml_type import ExecutorHookPoint, StopExecutingException
+from cyy_torch_toolbox import (ExecutorHookPoint, Inferencer,
+                               StopExecutingException)
 from cyy_torch_toolbox.tensor import tensor_to
+from cyy_torch_toolbox.typing import TensorDict
 
 
 def __vector_diff(a, b) -> float:
@@ -35,7 +36,7 @@ def stochastic_inverse_hessian_vector_product(
     dampling_term: float = 0,
     scale: float = 1,
     epsilon: float = 0.0001,
-) -> list[dict]:
+) -> list[TensorDict]:
     get_logger().info(
         "repeated_num is %s,max_iteration is %s,dampling term is %s,scale is %s,epsilon is %s",
         repeated_num,
