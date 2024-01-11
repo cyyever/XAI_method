@@ -5,8 +5,7 @@ from cyy_naive_lib.algorithm.mapping_op import get_mapping_values_by_key_order
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import (
     dot_product, get_sample_gradient_dict, get_sample_gvp_dict,
     get_self_gvp_dict)
-from cyy_torch_toolbox.ml_type import MachineLearningPhase
-from cyy_torch_toolbox.trainer import Trainer
+from cyy_torch_toolbox import MachineLearningPhase, Trainer
 
 from .inverse_hessian_vector_product import \
     stochastic_inverse_hessian_vector_product
@@ -22,7 +21,6 @@ def compute_self_influence_function(
     computed_indices: set,
     inverse_hvp_arguments: None | dict = None,
 ) -> dict:
-
     inferencer = trainer.get_inferencer(
         phase=MachineLearningPhase.Training, deepcopy_model=True
     )
@@ -36,7 +34,7 @@ def compute_self_influence_function(
         stochastic_inverse_hessian_vector_product(
             inferencer,
             vectors=list(get_mapping_values_by_key_order(test_gradients)),
-            **inverse_hvp_arguments
+            **inverse_hvp_arguments,
         )
         / trainer.dataset_size
     ).cpu()
