@@ -36,12 +36,12 @@ class HyDRAConfig(Config):
         trainer.append_hook(hydra_hook)
 
         if self.tracking_percentage is not None:
-            subset_dict = DatasetSampler(
+            subset = DatasetSampler(
                 trainer.dataset_collection.get_dataset_util(
                     phase=MachineLearningPhase.Training
                 )
             ).iid_sample_indices(self.tracking_percentage)
 
-            tracking_indices: list = sum(subset_dict.values(), [])
+            tracking_indices: list = list(subset)
             hydra_hook.set_computed_indices(tracking_indices)
         return {"trainer": trainer, "hydra_hook": hydra_hook}
