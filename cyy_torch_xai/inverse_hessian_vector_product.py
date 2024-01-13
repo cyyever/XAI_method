@@ -21,11 +21,8 @@ def __vector_diff(a, b) -> float:
     return math.sqrt(product)
 
 
-def __result_transform(scale, data_index, result, data) -> dict:
-    new_res = {}
-    for k, v in data.items():
-        new_res[k] = v - result[k] / scale
-    return new_res
+def __result_transform(scale, data_index: int, result, data: dict) -> dict:
+    return {k: v - result[k] / scale for k, v in data.items()}
 
 
 def stochastic_inverse_hessian_vector_product(
@@ -46,7 +43,7 @@ def stochastic_inverse_hessian_vector_product(
         epsilon,
     )
 
-    def iteration(inferencer, vectors) -> list:
+    def iteration(inferencer, vectors) -> list[dict]:
         iteration_num = 0
         hook = BatchHVPHook()
 
@@ -58,7 +55,7 @@ def stochastic_inverse_hessian_vector_product(
 
         hook.set_result_transform(functools.partial(__result_transform, scale))
 
-        results: None | list = None
+        results: None | list[dict] = None
 
         def compute_product(epoch, **kwargs) -> None:
             nonlocal cur_products
@@ -121,13 +118,15 @@ def stochastic_inverse_hessian_vector_product(
         assert results is not None
         return results
 
-    product_list: list = [iteration(inferencer, vectors) for _ in range(repeated_num)]
+    product_list: list[list[dict]] = [
+        iteration(inferencer, vectors) for _ in range(repeated_num)
+    ]
     if repeated_num == 1:
         return product_list[0]
-    tmp = [None] * len(vectors)
+    tmp: list[dict] = [{}] * len(vectors)
     for products in product_list:
         for idx, product in enumerate(products):
-            if tmp[idx] is None:
+            if not tmp[idx]:
                 tmp[idx] = {k: [v] for k, v in product.items()}
             else:
                 for k, v in product.items():
@@ -136,5 +135,5 @@ def stochastic_inverse_hessian_vector_product(
         for k, v in product:
             std, mean = torch.std_mean(v, dim=0)
             product[k] = mean
-            get_logger().info("std is %s", torch.norm(std, p=2))
+            get_logger().info("std is %s", torch.linalg.vector_norm(std))
     return tmp
