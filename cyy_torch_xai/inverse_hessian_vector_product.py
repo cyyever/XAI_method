@@ -25,15 +25,34 @@ def __result_transform(scale, data_index: int, result, data: dict) -> dict:
     return {k: v - result[k] / scale for k, v in data.items()}
 
 
+default_inverse_hvp_arguments: dict[str, float | int] = {
+    "dampling_term": 0.01,
+    "scale": 100000,
+    "epsilon": 0.03,
+    "repeated_num": 3,
+    "max_iteration": 1000,
+}
+
+
 def stochastic_inverse_hessian_vector_product(
     inferencer: Inferencer,
     vectors: list,
-    repeated_num: int = 1,
-    max_iteration: int = 1000,
-    dampling_term: float = 0,
-    scale: float = 1,
-    epsilon: float = 0.0001,
+    dampling_term: float | None = None,
+    scale: float | None = None,
+    epsilon: float | None = None,
+    repeated_num: int | None = None,
+    max_iteration: int | None = None,
 ) -> list[TensorDict]:
+    if dampling_term is None:
+        dampling_term = default_inverse_hvp_arguments["dampling_term"]
+    if scale is None:
+        scale = default_inverse_hvp_arguments["scale"]
+    if epsilon is None:
+        epsilon = default_inverse_hvp_arguments["epsilon"]
+    if max_iteration is None:
+        max_iteration = int(default_inverse_hvp_arguments["max_iteration"])
+    if repeated_num is None:
+        repeated_num = int(default_inverse_hvp_arguments["repeated_num"])
     get_logger().info(
         "repeated_num is %s,max_iteration is %s,dampling term is %s,scale is %s,epsilon is %s",
         repeated_num,
@@ -63,6 +82,8 @@ def stochastic_inverse_hessian_vector_product(
             nonlocal iteration_num
             nonlocal vectors
             nonlocal hook
+            nonlocal max_iteration
+            nonlocal repeated_num
             assert len(hook.result_dict) == len(vectors)
 
             next_products: list = []

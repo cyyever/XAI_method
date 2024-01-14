@@ -12,14 +12,14 @@ try:
 
 except BaseException:
     has_synced_tensor_dict = False
-from cyy_torch_toolbox.ml_type import MachineLearningPhase
+from cyy_torch_toolbox import MachineLearningPhase, Trainer
 from cyy_torch_toolbox.tensor import tensor_to
-from cyy_torch_toolbox.trainer import Trainer
+from cyy_torch_toolbox.typing import TensorDict
 
 
-def get_test_gradient(trainer: Trainer) -> dict:
+def get_test_gradient(trainer: Trainer) -> TensorDict:
     inferencer = trainer.get_inferencer(
-        phase=MachineLearningPhase.Test, deepcopy_model=True
+        phase=MachineLearningPhase.Test, deepcopy_model=False
     )
     return inferencer.get_gradient()
 
