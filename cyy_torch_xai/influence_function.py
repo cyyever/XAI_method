@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from cyy_naive_lib.algorithm.mapping_op import get_mapping_values_by_key_order
 from cyy_torch_algorithm.computation.sample_gradient import (
     get_sample_gradients, get_sample_gvps, get_self_gvps)
@@ -11,7 +13,7 @@ from .util import get_test_gradient
 
 def compute_influence_function(
     trainer: Trainer,
-    training_indices: set | None,
+    training_indices: Iterable[int] | None,
     test_gradient: TensorDict | None = None,
 ) -> dict[int, float]:
     if test_gradient is None:

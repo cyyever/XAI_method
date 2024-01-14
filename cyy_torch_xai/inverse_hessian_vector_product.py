@@ -130,7 +130,7 @@ def stochastic_inverse_hessian_vector_product(
             get_logger().debug(
                 "stochastic_inverse_hessian_vector_product epoch is %s", epoch
             )
-            normal_stop = tmp_inferencer.inference(use_grad=False, epoch=epoch)
+            normal_stop = tmp_inferencer.inference()
             if not normal_stop:
                 break
             epoch += 1
