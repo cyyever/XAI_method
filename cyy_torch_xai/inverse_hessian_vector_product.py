@@ -111,11 +111,9 @@ def stochastic_inverse_hessian_vector_product(
             cur_products = next_products
             iteration_num += 1
             if (max_diff <= epsilon and epoch > 1) or iteration_num >= max_iteration:
-                results = [
-                    {k: v / scale}
-                    for product in cur_products
-                    for k, v in product.items()
-                ]
+                results = []
+                for product in cur_products:
+                    results.append({k: v / scale for k, v in product.items()})
                 raise StopExecutingException()
             hook.set_data(cur_products)
 
