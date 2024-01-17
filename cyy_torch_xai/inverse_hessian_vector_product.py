@@ -12,7 +12,7 @@ from cyy_torch_toolbox.tensor import tensor_to
 from cyy_torch_toolbox.typing import TensorDict
 
 
-def __vector_diff(a, b) -> float:
+def __vector_diff(a: dict, b: dict) -> float:
     product = 0
     for k, v in a.items():
         c = (v - b[k]).view(-1)
