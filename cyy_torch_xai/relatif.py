@@ -32,11 +32,11 @@ def compute_relatif(
         inferencer,
         vectors=list(get_mapping_values_by_key_order(training_sample_gradients)),
     )
-    return [
-        dot_product(product, test_gradient)
+    return {
+        idx: dot_product(product, test_gradient)
         / torch.linalg.vector_norm(cat_tensor_dict(product)).item()
-        for product in products
-    ]
+        for idx, product in zip(sorted(training_sample_gradients.keys()), products)
+    }
 
 
 # from .influence_function import get_default_inverse_hvp_arguments
