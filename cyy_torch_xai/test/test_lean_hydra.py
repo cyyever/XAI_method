@@ -1,6 +1,6 @@
 import importlib
 
-from cyy_torch_xai.lean_hydra.lean_hydra_config import LeanHyDRAConfig
+from ..lean_hydra.lean_hydra_config import LeanHyDRAConfig
 
 has_cyy_torch_vision: bool = importlib.util.find_spec("cyy_torch_vision") is not None
 
