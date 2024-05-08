@@ -2,8 +2,7 @@ import traceback
 
 import torch
 from cyy_naive_lib.log import log_error
-
-from .typing import OptionalTensor
+from cyy_torch_toolbox.typing import OptionalTensor
 
 
 def check_overflow_and_underflow(tensor: torch.Tensor) -> None:

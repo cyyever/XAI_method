@@ -1,12 +1,11 @@
-
 from cyy_naive_lib.algorithm.mapping_op import get_mapping_values_by_key_order
 from cyy_torch_algorithm.computation.sample_gradient import (
     get_sample_gradients, get_sample_gvps, get_self_gvps)
 from cyy_torch_toolbox import MachineLearningPhase, Trainer
+from cyy_torch_toolbox.typing import OptionalIndicesType, OptionalTensorDict
 
 from .inverse_hessian_vector_product import \
     stochastic_inverse_hessian_vector_product
-from .typing import OptionalIndicesType, OptionalTensorDict
 from .util import get_test_gradient
 
 

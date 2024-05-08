@@ -1,7 +1,7 @@
 from cyy_torch_toolbox import Config
 
 from ..inverse_hessian_vector_product import default_inverse_hvp_arguments
-from ..relatif import compute_relatif
+from ..relatif import compute_relatif_values
 
 try:
     import cyy_torch_vision  # noqa: F401
@@ -15,7 +15,7 @@ try:
         default_inverse_hvp_arguments["scale"] = 1000
         default_inverse_hvp_arguments["epsilon"] = 100
         default_inverse_hvp_arguments["repeated_num"] = 1
-        compute_relatif(trainer, training_indices=[1, 2])
+        compute_relatif_values(trainer, computed_indices=[1, 2])
 
 except BaseException:
     pass

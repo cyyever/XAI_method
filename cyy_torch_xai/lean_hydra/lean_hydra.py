@@ -12,7 +12,7 @@ class LeanHyDRA:
         model_evaluator: ModelEvaluator,
         optimizer,
         test_gradient,
-        training_set_size,
+        training_set_size: int,
     ) -> None:
         self.__hooks = HookCollection()
         match optimizer:
