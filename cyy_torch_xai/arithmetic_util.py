@@ -1,10 +1,9 @@
 import traceback
-from typing import TypeAlias
 
 import torch
 from cyy_naive_lib.log import log_error
 
-OptionalTensor: TypeAlias = torch.Tensor | None
+from .typing import OptionalTensor
 
 
 def check_overflow_and_underflow(tensor: torch.Tensor) -> None:
