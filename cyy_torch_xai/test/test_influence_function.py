@@ -1,5 +1,5 @@
 from cyy_torch_toolbox import Config
-from cyy_torch_xai.influence_function import compute_influence_function
+from cyy_torch_xai.influence_function import compute_influence_function_values
 from cyy_torch_xai.inverse_hessian_vector_product import \
     default_inverse_hvp_arguments
 
@@ -15,7 +15,7 @@ try:
         default_inverse_hvp_arguments["scale"] = 1000
         default_inverse_hvp_arguments["epsilon"] = 100
         default_inverse_hvp_arguments["repeated_num"] = 1
-        compute_influence_function(trainer, training_indices=[1, 2])
+        compute_influence_function_values(trainer, computed_indices=[1, 2])
 
 except BaseException:
     pass
