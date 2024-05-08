@@ -5,6 +5,7 @@ from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import
     get_sample_gradients
 from cyy_torch_toolbox import IterationUnit, MachineLearningPhase
 from cyy_torch_toolbox.hook import Hook
+from cyy_torch_toolbox.typing import TensorDict
 
 
 class TracInBaseHook(Hook):
@@ -17,16 +18,16 @@ class TracInBaseHook(Hook):
 
         self.__check_point_gap = check_point_gap
         self.__test_sample_indices = test_sample_indices
-        self.__test_grad_dict: dict = {}
-        self._influence_values: dict = {}
+        self.__test_grad_dict: TensorDict = {}
+        self._influence_values: dict[int, float] = {}
         self.__batch_num: int = 0
 
     @property
-    def test_grad_dict(self) -> dict:
+    def test_grad_dict(self) -> TensorDict:
         return self.__test_grad_dict
 
     @property
-    def influence_values(self) -> dict:
+    def influence_values(self) -> dict[int, float]:
         return self._influence_values
 
     def _before_execute(self, **kwargs: Any) -> None:

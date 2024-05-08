@@ -7,7 +7,8 @@ from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
     SampleGradientHook
 from cyy_torch_toolbox.tensor import dot_product
-from cyy_torch_xai.tracin.base_hook import TracInBaseHook
+
+from .base_hook import TracInBaseHook
 
 
 class TracInHook(TracInBaseHook):
@@ -21,7 +22,7 @@ class TracInHook(TracInBaseHook):
         self._sample_grad_hook.set_computed_indices(self.__tracked_indices)
         get_logger().info("track %s indices", len(self.__tracked_indices))
 
-    def _after_batch(self, executor, batch_size, **kwargs) -> None:
+    def _after_batch(self, executor, batch_size: int, **kwargs) -> None:
         trainer = executor
         optimizer = trainer.get_optimizer()
         assert len(optimizer.param_groups) == 1

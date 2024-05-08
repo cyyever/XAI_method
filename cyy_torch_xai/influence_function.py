@@ -11,9 +11,9 @@ from .inverse_hessian_vector_product import \
 from .util import get_test_gradient
 
 
-def compute_influence_function(
+def compute_influence_function_values(
     trainer: Trainer,
-    training_indices: Iterable[int] | None,
+    computed_indices: Iterable[int] | None = None,
     test_gradient: TensorDict | None = None,
 ) -> dict[int, float]:
     if test_gradient is None:
@@ -27,14 +27,14 @@ def compute_influence_function(
     )[0]
 
     products = get_sample_gvps(
-        inferencer=inferencer, vector=product, computed_indices=training_indices
+        inferencer=inferencer, vector=product, computed_indices=computed_indices
     )
     return {idx: product / trainer.dataset_size for idx, product in products.items()}
 
 
-def compute_self_influence_function(
+def compute_self_influence_function_values(
     trainer: Trainer,
-    computed_indices: set,
+    computed_indices: set[int],
 ) -> dict:
     inferencer = trainer.get_inferencer(
         phase=MachineLearningPhase.Training, deepcopy_model=False
@@ -53,40 +53,3 @@ def compute_self_influence_function(
     )
 
     return {idx: product / trainer.dataset_size for idx, product in gvps.items()}
-
-
-# def compute_perturbation_influence_function(
-#     trainer: Trainer,
-#     perturbation_idx_fun: Callable,
-#     perturbation_fun: Callable,
-#     test_gradient: dict | None = None,
-#     inverse_hvp_arguments: None | dict = None,
-#     grad_diff=None,
-# ) -> dict:
-#     if test_gradient is None:
-#         test_gradient = get_test_gradient(trainer=trainer)
-
-#     inferencer = trainer.get_inferencer(
-#         phase=MachineLearningPhase.Training, deepcopy_model=True
-#     )
-#     if inverse_hvp_arguments is None:
-#         inverse_hvp_arguments = get_default_inverse_hvp_arguments()
-
-#     product = (
-#         -stochastic_inverse_hessian_vector_product(
-#             inferencer, vectors=[test_gradient], **inverse_hvp_arguments
-#         )
-#         / trainer.dataset_size
-#     )[0].cpu()
-#     if grad_diff is not None:
-#         res = {}
-#         for perturbation_idx, v in grad_diff.items():
-#             res[perturbation_idx] = v.cpu().dot(product).item()
-#         return res
-
-#     return compute_perturbation_gradient_difference(
-#         trainer=trainer,
-#         perturbation_idx_fun=perturbation_idx_fun,
-#         perturbation_fun=perturbation_fun,
-#         result_transform=functools.partial(dot_product, b=product),
-#     )

@@ -1,21 +1,24 @@
 import traceback
+from typing import TypeAlias
 
 import torch
-from cyy_naive_lib.log import get_logger
+from cyy_naive_lib.log import log_error
+
+OptionalTensor: TypeAlias = torch.Tensor | None
 
 
-def check_overflow_and_underflow(tensor):
+def check_overflow_and_underflow(tensor: torch.Tensor) -> None:
     if tensor is None:
         return
     if torch.any(torch.isnan(tensor)):
-        get_logger().error("traceback:%s", str(traceback.extract_stack(limit=10)))
+        log_error("traceback:%s", str(traceback.extract_stack(limit=10)))
         raise AssertionError(f"find nan tensor {tensor.cpu()}")
     if torch.any(torch.isinf(tensor)):
-        get_logger().error("traceback:%s", str(traceback.extract_stack(limit=10)))
+        log_error("traceback:%s", str(traceback.extract_stack(limit=10)))
         raise AssertionError(f"find inf tensor {tensor.cpu()}")
 
 
-def optional_addition(*args):
+def optional_addition(*args: OptionalTensor) -> OptionalTensor:
     res = None
     for a in args:
         if a is None:
@@ -27,7 +30,7 @@ def optional_addition(*args):
     return res
 
 
-def optional_subtraction(a, b):
+def optional_subtraction(a: OptionalTensor, b: OptionalTensor) -> OptionalTensor:
     if a is None:
         if b is None:
             return None
@@ -37,7 +40,7 @@ def optional_subtraction(a, b):
     return a - b
 
 
-def optional_multiplication(*args):
+def optional_multiplication(*args: OptionalTensor) -> OptionalTensor:
     res = None
     for a in args:
         if a is None:
@@ -49,7 +52,9 @@ def optional_multiplication(*args):
     return res
 
 
-def optional_division(a, b, epsilon):
+def optional_division(
+    a: OptionalTensor, b: torch.Tensor, epsilon: float
+) -> OptionalTensor:
     if a is None:
         return None
     if epsilon is None:
