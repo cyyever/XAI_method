@@ -1,7 +1,7 @@
 from cyy_torch_toolbox import Config
-
-from ..inverse_hessian_vector_product import default_inverse_hvp_arguments
-from ..relatif import compute_relatif_values
+from cyy_torch_xai.inverse_hessian_vector_product import \
+    default_inverse_hvp_arguments
+from cyy_torch_xai.relatif import compute_relatif_values
 
 try:
     import cyy_torch_vision  # noqa: F401
