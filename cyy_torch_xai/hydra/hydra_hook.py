@@ -13,8 +13,8 @@ from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import
     SampleGradientHook
 from cyy_torch_algorithm.data_structure.synced_tensor_dict import \
     SyncedTensorDict
+from cyy_torch_toolbox import ExecutorHookPoint, MachineLearningPhase
 from cyy_torch_toolbox.hook import Hook
-from cyy_torch_toolbox.ml_type import ExecutorHookPoint, MachineLearningPhase
 from cyy_torch_toolbox.tensor import cat_tensor_dict, tensor_to
 
 

@@ -1,6 +1,6 @@
 import importlib
 
-from cyy_torch_toolbox.data_structure import TorchProcessPool
+from cyy_torch_toolbox.concurrency import TorchProcessPool
 
 from ..lean_hydra.lean_hydra_config import LeanHyDRAConfig
 
