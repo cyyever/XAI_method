@@ -16,7 +16,7 @@ class HyDRAAdamHook(HyDRAHook):
     __corrected_second_average_sqrt_with_epsilon_square = None
     __eps = None
 
-    def _before_batch(self, **kwargs):
+    def _before_batch(self, **kwargs) -> None:
         super()._before_batch(**kwargs)
         trainer = kwargs["executor"]
 

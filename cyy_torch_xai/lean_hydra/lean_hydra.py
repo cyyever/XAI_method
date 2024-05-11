@@ -1,8 +1,7 @@
 import torch
-from cyy_torch_toolbox.hook import HookCollection
-from cyy_torch_toolbox.ml_type import ExecutorHookPoint
-from cyy_torch_toolbox.model_evaluator import ModelEvaluator
+from cyy_torch_toolbox import ExecutorHookPoint, HookCollection, ModelEvaluator
 
+from ..typing import SampleContributionDict
 from .lean_hydra_sgd_hook import LeanHyDRASGDHook
 
 
@@ -49,12 +48,12 @@ class LeanHyDRA:
             optimizer=self.optimizer,
         )
 
-    def get_contribution(self, **kwargs):
+    def get_contribution(self, **kwargs) -> SampleContributionDict:
         if not self.__end_exe:
             self.__hooks.exec_hooks(hook_point=ExecutorHookPoint.AFTER_EXECUTE)
             self.__end_exe = True
-            return {
-                idx: self._hydra_hook.contributions[idx].item()
-                for idx in self._hydra_hook.computed_indices
-            }
-        return self._hydra_hook.contributions
+        computed_indices = self._hydra_hook.computed_indices
+        assert computed_indices is not None
+        return {
+            idx: self._hydra_hook.contributions[idx].item() for idx in computed_indices
+        }

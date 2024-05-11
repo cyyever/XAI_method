@@ -17,7 +17,7 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         self.__first_average = None
         self.__second_average = None
 
-    def _after_optimizer_step(self, step_skipped, batch_size, **kwargs):
+    def _after_optimizer_step(self, step_skipped, batch_size, **kwargs) -> None:
         if step_skipped:
             return
 

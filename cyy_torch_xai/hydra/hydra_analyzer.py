@@ -1,11 +1,12 @@
 import tempfile
 
-from cyy_torch_xai.hydra.hydra_hook import HyDRAHook
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
-    get_sample_gradient_dict
+    get_sample_gradients
 from cyy_torch_algorithm.data_structure.synced_tensor_dict import \
     SyncedTensorDict
 from cyy_torch_toolbox.inferencer import Inferencer
+from cyy_torch_toolbox.tensor import cat_tensor_dict
+from cyy_torch_xai.hydra.hydra_hook import HyDRAHook
 
 
 class HyDRAAnalyzer:
@@ -15,7 +16,7 @@ class HyDRAAnalyzer:
         hyper_gradient_dir: str,
         training_set_size: int,
         cache_size: int = 1024,
-    ):
+    ) -> None:
         self.inferencer: Inferencer = inferencer
         self.hydra_gradient = HyDRAHook.create_hypergradient_dict(
             cache_size, storage_dir=hyper_gradient_dir
@@ -33,17 +34,20 @@ class HyDRAAnalyzer:
 
         for k, indices in training_subset_dict.items():
             hyper_gradient_sum = None
-            for (_, hyper_gradient) in self.hydra_gradient.items(indices):
+            for idx, hyper_gradient in self.hydra_gradient.items():
+                if int(idx) not in indices:
+                    continue
                 if hyper_gradient_sum is None:
                     hyper_gradient_sum = hyper_gradient
                 else:
                     hyper_gradient_sum += hyper_gradient
+            assert hyper_gradient_sum is not None
             hyper_gradient_sum_dict[k] = hyper_gradient_sum
         test_subset_gradient_dict = self.__get_test_gradient_dict(test_subset_dict)
         contribution_dict: dict = {}
-        for (training_key, hyper_gradient_sum) in hyper_gradient_sum_dict.items():
+        for training_key, hyper_gradient_sum in hyper_gradient_sum_dict.items():
             contribution_dict[training_key] = {}
-            for (test_key, test_subset_gradient) in test_subset_gradient_dict.items():
+            for test_key, test_subset_gradient in test_subset_gradient_dict.items():
                 contribution_dict[training_key][test_key] = (
                     -(test_subset_gradient @ hyper_gradient_sum)
                     / self.training_set_size
@@ -53,7 +57,7 @@ class HyDRAAnalyzer:
 
     def get_training_sample_contributions(
         self, test_subset_dict, training_subset_indices=None
-    ):
+    ) -> dict[list, float]:
         if training_subset_indices is None:
             training_subset_indices = self.hydra_gradient.keys()
         return self.get_subset_contributions(
@@ -62,13 +66,11 @@ class HyDRAAnalyzer:
 
     def __get_test_gradient_dict(self, test_subset_dict: dict) -> SyncedTensorDict:
         computed_indices: list = sum(test_subset_dict.values(), [])
-        sample_gradient_dict = get_sample_gradient_dict(
-            self.inferencer, computed_indices
-        )
+        sample_gradient_dict = get_sample_gradients(self.inferencer, computed_indices)
         test_gredient_dict: SyncedTensorDict = SyncedTensorDict.create(key_type=str)
         for test_key, indices in test_subset_dict.items():
             for idx in indices:
-                sample_gradient = sample_gradient_dict[idx]
+                sample_gradient = cat_tensor_dict(sample_gradient_dict[idx])
                 if test_key not in test_gredient_dict:
                     test_gredient_dict[test_key] = sample_gradient
                 else:

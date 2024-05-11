@@ -27,7 +27,7 @@ class HyDRAHook(Hook):
         self._trainer = None
 
         self._computed_indices = None
-        self._delayed_approximation_computations: dict = None
+        self._delayed_approximation_computations: dict = {}
         self._training_set_size = None
         self.__hyper_parameter_size = None
 

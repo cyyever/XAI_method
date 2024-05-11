@@ -26,7 +26,8 @@ class BaseHook(Hook):
         self._training_set_size: int | None = None
 
     @property
-    def contributions(self):
+    def contributions(self) -> torch.Tensor:
+        assert self._contributions is not None
         return self._contributions
 
     def _before_execute(self, **kwargs: Any) -> None:
@@ -51,7 +52,7 @@ class BaseHook(Hook):
     def computed_indices(self) -> set[int] | None:
         return self._computed_indices
 
-    def _get_optimizer(self, **kwargs):
+    def _get_optimizer(self, **kwargs) -> torch.optim.Optimizer:
         if "executor" in kwargs:
             trainer = kwargs["executor"]
             return trainer.get_optimizer()

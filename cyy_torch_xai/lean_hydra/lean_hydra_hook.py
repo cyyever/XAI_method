@@ -1,15 +1,17 @@
 import json
 import os
+from typing import Any
 
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
     dot_product
 from cyy_torch_toolbox.tensor import tensor_to
+from cyy_torch_toolbox.typing import TensorDict
 
 from ..hydra.base_hook import BaseHook
 
 
 class LeanHyDRAHook(BaseHook):
-    def __init__(self, test_gradient, **kwargs) -> None:
+    def __init__(self, test_gradient: TensorDict, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.__test_gradient = tensor_to(test_gradient, device="cpu")
         self._sample_gradient_hook.set_result_transform(self._gradient_dot_product)
