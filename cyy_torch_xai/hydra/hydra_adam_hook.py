@@ -1,7 +1,7 @@
 import math
 
 import torch
-from cyy_torch_toolbox.tensor import cat_tensors_to_vector
+from cyy_torch_toolbox import cat_tensors_to_vector
 
 from .hydra_hook import HyDRAHook
 

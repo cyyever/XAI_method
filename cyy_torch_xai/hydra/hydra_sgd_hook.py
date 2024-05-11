@@ -1,5 +1,6 @@
-from cyy_torch_toolbox.tensor import cat_tensor_dict
-from cyy_torch_xai.hydra.hydra_hook import HyDRAHook
+from cyy_torch_toolbox import cat_tensor_dict
+
+from .hydra_hook import HyDRAHook
 
 
 class HyDRASGDHook(HyDRAHook):

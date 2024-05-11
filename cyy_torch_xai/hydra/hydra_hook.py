@@ -7,15 +7,11 @@ import torch
 from cyy_naive_lib.algorithm.sequence_op import split_list_to_chunks
 from cyy_naive_lib.log import get_logger
 from cyy_naive_lib.time_counter import TimeCounter
-from cyy_torch_algorithm.computation.batch_hvp.batch_hvp_hook import \
-    BatchHVPHook
-from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
-    SampleGradientHook
+from cyy_torch_algorithm.computation import BatchHVPHook, SampleGradientHook
 from cyy_torch_algorithm.data_structure.synced_tensor_dict import \
     SyncedTensorDict
-from cyy_torch_toolbox import ExecutorHookPoint, MachineLearningPhase
-from cyy_torch_toolbox.hook import Hook
-from cyy_torch_toolbox.tensor import cat_tensor_dict, tensor_to
+from cyy_torch_toolbox import (ExecutorHookPoint, Hook, MachineLearningPhase,
+                               cat_tensor_dict, tensor_to)
 
 
 class HyDRAHook(Hook):
