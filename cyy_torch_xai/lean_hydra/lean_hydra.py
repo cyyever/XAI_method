@@ -9,7 +9,7 @@ class LeanHyDRA:
     def __init__(
         self,
         model_evaluator: ModelEvaluator,
-        optimizer,
+        optimizer: torch.optim.Optimizer,
         test_gradient,
         training_set_size: int,
     ) -> None:

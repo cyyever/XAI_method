@@ -3,7 +3,8 @@ from typing import Any
 import torch
 from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation import BatchHVPHook, SampleGradientHook
-from cyy_torch_toolbox import Hook, IndicesType, ModelUtil, get_device
+from cyy_torch_toolbox import (Hook, IndicesType, ModelUtil, OptionalTensor,
+                               get_device)
 
 
 class BaseHook(Hook):
@@ -16,7 +17,7 @@ class BaseHook(Hook):
 
         self._sample_gradient_hook = SampleGradientHook()
         self._computed_indices: set[int] | None = None
-        self._contributions: torch.Tensor | None = None
+        self._contributions: OptionalTensor = None
         self._training_set_size: int | None = None
 
     @property

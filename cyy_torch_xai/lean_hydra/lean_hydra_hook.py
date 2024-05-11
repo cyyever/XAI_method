@@ -2,10 +2,8 @@ import json
 import os
 from typing import Any
 
-from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
-    dot_product
-from cyy_torch_toolbox.tensor import tensor_to
-from cyy_torch_toolbox.typing import TensorDict
+from cyy_torch_algorithm.computation import dot_product
+from cyy_torch_toolbox import TensorDict, tensor_to
 
 from ..hydra.base_hook import BaseHook
 
@@ -18,7 +16,7 @@ class LeanHyDRAHook(BaseHook):
         if self._batch_hvp_hook is not None:
             self._batch_hvp_hook.set_vectors([self.__test_gradient])
 
-    def _gradient_dot_product(self, result, **kwargs):
+    def _gradient_dot_product(self, result, **kwargs: Any):
         return dot_product(self.__test_gradient, result)
 
     def _after_execute(self, **kwargs) -> None:

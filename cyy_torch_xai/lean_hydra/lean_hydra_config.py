@@ -2,8 +2,7 @@ from typing import Any, Callable
 
 import torch.optim
 from cyy_torch_algorithm.retraining import DeterministicTraining
-from cyy_torch_toolbox import Config, MachineLearningPhase, Trainer
-from cyy_torch_toolbox.typing import TensorDict
+from cyy_torch_toolbox import Config, MachineLearningPhase, TensorDict, Trainer
 
 from .lean_hydra_sgd_hook import LeanHyDRASGDHook
 

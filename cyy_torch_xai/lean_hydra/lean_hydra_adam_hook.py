@@ -1,6 +1,6 @@
 # from cyy_naive_lib.log import get_logger
 # from cyy_naive_lib.time_counter import TimeCounter
-from cyy_torch_toolbox.tensor import cat_tensors_to_vector
+from cyy_torch_toolbox import cat_tensors_to_vector
 from cyy_torch_xai.arithmetic_util import (optional_addition,
                                            optional_multiplication,
                                            optional_subtraction)
@@ -17,7 +17,9 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         self.__first_average = None
         self.__second_average = None
 
-    def _after_optimizer_step(self, step_skipped, batch_size, **kwargs) -> None:
+    def _after_optimizer_step(
+        self, step_skipped: bool, batch_size: int, **kwargs
+    ) -> None:
         if step_skipped:
             return
 

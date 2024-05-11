@@ -1,5 +1,8 @@
+from typing import Any
+
 from cyy_naive_lib.log import get_logger
 from cyy_naive_lib.time_counter import TimeCounter
+from cyy_torch_toolbox import OptionalTensor
 from cyy_torch_xai.arithmetic_util import (optional_addition,
                                            optional_multiplication)
 
@@ -7,7 +10,7 @@ from .lean_hydra_hook import LeanHyDRAHook
 
 
 class LeanHyDRASGDHook(LeanHyDRAHook):
-    __mom_product = None
+    __mom_product: OptionalTensor = None
 
     def _after_batch(self, batch_size, **kwargs):
         counter = TimeCounter()
@@ -23,6 +26,8 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
             optional_multiplication(self._contributions, weight_decay),
         )
 
+        assert self.__mom_product is not None
+
         for idx, dot_product in self._sample_gradient_hook.result_dict.items():
             self.__mom_product[idx] += (
                 dot_product * self._training_set_size / batch_size
@@ -35,7 +40,7 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
             counter.elapsed_milliseconds(),
         )
 
-    def _after_execute(self, **kwargs):
-        assert self._contributions is not None
-        self._contributions = -self._contributions / self._training_set_size
+    def _after_execute(self, **kwargs: Any) -> None:
+        assert self._training_set_size is not None
+        self._contributions = -self.contributions / self._training_set_size
         super()._after_execute(**kwargs)

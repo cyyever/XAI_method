@@ -11,8 +11,6 @@ def lean_hydra_train() -> None:
 
     config = LeanHyDRAConfig(dataset_name="MNIST", model_name="LeNet5")
     config.hyper_parameter_config.epoch = 2
-    # config.hyper_parameter_config.learning_rate_scheduler_name = "CosineAnnealingLR"
-    # config.hyper_parameter_config.optimizer_name = "Adam"
     config.hyper_parameter_config.optimizer_name = "SGD"
     config.hyper_parameter_config.learning_rate = 0.01
     trainer = config.create_deterministic_trainer()
