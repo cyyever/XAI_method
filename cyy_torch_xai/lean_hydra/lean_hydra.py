@@ -1,5 +1,8 @@
+from typing import Any
+
 import torch
-from cyy_torch_toolbox import ExecutorHookPoint, HookCollection, ModelEvaluator
+from cyy_torch_toolbox import (ExecutorHookPoint, HookCollection, IndicesType,
+                               ModelEvaluator, ModelGradient)
 
 from ..typing import SampleContributionDict
 from .lean_hydra_sgd_hook import LeanHyDRASGDHook
@@ -10,7 +13,7 @@ class LeanHyDRA:
         self,
         model_evaluator: ModelEvaluator,
         optimizer: torch.optim.Optimizer,
-        test_gradient,
+        test_gradient: ModelGradient,
         training_set_size: int,
     ) -> None:
         self.__hooks = HookCollection()
@@ -28,7 +31,7 @@ class LeanHyDRA:
         )
         self.__end_exe: bool = False
 
-    def set_computed_indices(self, computed_indices) -> None:
+    def set_computed_indices(self, computed_indices: IndicesType) -> None:
         self._hydra_hook.set_computed_indices(computed_indices=computed_indices)
 
     def iterate(self, sample_indices, inputs, targets, **kwargs) -> None:
@@ -48,7 +51,7 @@ class LeanHyDRA:
             optimizer=self.optimizer,
         )
 
-    def get_contribution(self, **kwargs) -> SampleContributionDict:
+    def get_contribution(self, **kwargs: Any) -> SampleContributionDict:
         if not self.__end_exe:
             self.__hooks.exec_hooks(hook_point=ExecutorHookPoint.AFTER_EXECUTE)
             self.__end_exe = True

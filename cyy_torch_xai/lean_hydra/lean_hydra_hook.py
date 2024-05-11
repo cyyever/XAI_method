@@ -3,13 +3,13 @@ import os
 from typing import Any
 
 from cyy_torch_algorithm.computation import dot_product
-from cyy_torch_toolbox import TensorDict, tensor_to
+from cyy_torch_toolbox import ModelGradient, tensor_to
 
 from ..hydra.base_hook import BaseHook
 
 
 class LeanHyDRAHook(BaseHook):
-    def __init__(self, test_gradient: TensorDict, **kwargs: Any) -> None:
+    def __init__(self, test_gradient: ModelGradient, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.__test_gradient = tensor_to(test_gradient, device="cpu")
         self._sample_gradient_hook.set_result_transform(self._gradient_dot_product)
