@@ -1,4 +1,3 @@
-import functools
 import json
 import os
 from typing import Any
@@ -13,11 +12,12 @@ class LeanHyDRAHook(BaseHook):
     def __init__(self, test_gradient: ModelGradient, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.__test_gradient = tensor_to(test_gradient, device="cpu")
-        self._sample_gradient_hook.set_result_transform(
-            functools.partial(dot_product, self.__test_gradient)
-        )
+        self._sample_gradient_hook.set_result_transform(self._dot_product)
         if self._batch_hvp_hook is not None:
             self._batch_hvp_hook.set_vectors([self.__test_gradient])
+
+    def _dot_product(self, result, **kwargs):
+        return dot_product(self.__test_gradient, result)
 
     def _after_execute(self, **kwargs) -> None:
         super()._after_execute(**kwargs)
