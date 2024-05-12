@@ -31,8 +31,11 @@ class HyDRAHook(BaseHook):
         self.__hvp_arguments: dict = {}
         self.use_approximation = False
 
-        if kwargs.get("use_approximation", None) is None:
+        use_approximation = kwargs.get("use_approximation", None)
+        if use_approximation is None:
             self.use_approximation = not self.use_hessian
+        else:
+            self.use_approximation = use_approximation
 
         self._approx_hyper_gradient_dict: SyncedTensorDict | None = None
 

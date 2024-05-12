@@ -44,4 +44,4 @@ class HyDRAConfig(Config):
 
             tracking_indices: list = list(subset)
             hydra_hook.set_computed_indices(tracking_indices)
-        return {"trainer": trainer, "hydra_hook": hydra_hook}
+        return {"trainer": trainer, "hook": hydra_hook}
