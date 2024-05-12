@@ -31,7 +31,7 @@ class HyDRAHook(BaseHook):
         self.__hvp_arguments: dict = {}
         self.use_approximation = False
 
-        use_approximation = kwargs.get("use_approximation", None)
+        use_approximation: None | bool = kwargs.get("use_approximation", None)
         if use_approximation is None:
             self.use_approximation = not self.use_hessian
         else:
@@ -60,7 +60,7 @@ class HyDRAHook(BaseHook):
         return self._trainer
 
     @property
-    def sample_gradient_dict(self):
+    def sample_gradient_dict(self) -> dict:
         return self._sample_gradient_hook.result_dict
 
     def __get_save_dir(self, trainer: Trainer) -> str:
