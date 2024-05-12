@@ -10,15 +10,24 @@ from cyy_torch_toolbox import (Hook, IndicesType, ModelUtil, OptionalTensor,
 class BaseHook(Hook):
     def __init__(self, use_hessian: bool = False) -> None:
         super().__init__(stripable=True)
-        self._use_hessian = use_hessian
-        self._batch_hvp_hook = None
+        self._use_hessian: bool = use_hessian
+        self._batch_hvp_hook: None | BatchHVPHook = None
         if self._use_hessian:
             self._batch_hvp_hook = BatchHVPHook()
 
-        self._sample_gradient_hook = SampleGradientHook()
-        self._computed_indices: set[int] | None = None
+        self._sample_gradient_hook: SampleGradientHook = SampleGradientHook()
+        self.__computed_indices: set[int] | None = None
         self._contributions: OptionalTensor = None
         self._training_set_size: int | None = None
+
+    @property
+    def batch_hvp_hook(self) -> BatchHVPHook:
+        assert self._batch_hvp_hook is not None
+        return self._batch_hvp_hook
+
+    @property
+    def use_hessian(self) -> bool:
+        return self._use_hessian
 
     @property
     def contributions(self) -> torch.Tensor:
@@ -35,8 +44,8 @@ class BaseHook(Hook):
             device = get_device()
 
         assert self._training_set_size is not None
-        if self.computed_indices is None:
-            self._computed_indices = set(range(self._training_set_size))
+        if self.__computed_indices is None:
+            self.set_computed_indices(range(self._training_set_size))
         else:
             get_logger().info("only compute %s indices", len(self.computed_indices))
         self._contributions = torch.zeros(self._training_set_size).to(
@@ -44,8 +53,9 @@ class BaseHook(Hook):
         )
 
     @property
-    def computed_indices(self) -> set[int] | None:
-        return self._computed_indices
+    def computed_indices(self) -> set[int]:
+        assert self.__computed_indices is not None
+        return self.__computed_indices
 
     def _get_optimizer(self, **kwargs) -> torch.optim.Optimizer:
         if "executor" in kwargs:
@@ -61,7 +71,7 @@ class BaseHook(Hook):
 
     def set_computed_indices(self, computed_indices: IndicesType) -> None:
         assert computed_indices
-        self._computed_indices = set(computed_indices)
+        self.__computed_indices = set(computed_indices)
         self._sample_gradient_hook.set_computed_indices(computed_indices)
 
     def _after_execute(self, **kwargs: Any) -> None:

@@ -1,3 +1,4 @@
+import functools
 import json
 import os
 from typing import Any
@@ -12,14 +13,14 @@ class LeanHyDRAHook(BaseHook):
     def __init__(self, test_gradient: ModelGradient, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.__test_gradient = tensor_to(test_gradient, device="cpu")
-        self._sample_gradient_hook.set_result_transform(self._gradient_dot_product)
+        self._sample_gradient_hook.set_result_transform(
+            functools.partial(dot_product, self.__test_gradient)
+        )
         if self._batch_hvp_hook is not None:
             self._batch_hvp_hook.set_vectors([self.__test_gradient])
 
-    def _gradient_dot_product(self, result, **kwargs: Any):
-        return dot_product(self.__test_gradient, result)
-
     def _after_execute(self, **kwargs) -> None:
+        super()._after_execute(**kwargs)
         assert self._contributions is not None
         assert self._contributions.shape[0] == self._training_set_size
         save_dir = "."
@@ -34,5 +35,5 @@ class LeanHyDRAHook(BaseHook):
             encoding="utf-8",
         ) as f:
             contributions = self._contributions.cpu().tolist()
-            json.dump({idx: contributions[idx] for idx in self._computed_indices}, f)
+            json.dump({idx: contributions[idx] for idx in self.computed_indices}, f)
         super()._after_execute(**kwargs)

@@ -2,89 +2,94 @@ import json
 import os
 import pickle
 import traceback
+from typing import Any
 
 import torch
 from cyy_naive_lib.algorithm.sequence_op import split_list_to_chunks
 from cyy_naive_lib.log import get_logger
 from cyy_naive_lib.time_counter import TimeCounter
-from cyy_torch_algorithm.computation import BatchHVPHook, SampleGradientHook
 from cyy_torch_algorithm.data_structure.synced_tensor_dict import \
     SyncedTensorDict
-from cyy_torch_toolbox import (ExecutorHookPoint, Hook, MachineLearningPhase,
+from cyy_torch_toolbox import (ExecutorHookPoint, OptionalTensor, Trainer,
                                cat_tensor_dict, tensor_to)
 
+from ..util import get_test_gradient
+from .base_hook import BaseHook
 
-class HyDRAHook(Hook):
-    def __init__(self, cache_size, **kwargs):
-        super().__init__(stripable=True)
-        self._sample_gradient_hook = SampleGradientHook()
-        self._cache_size = cache_size
-        self.__save_dir = None
-        self._trainer = None
 
-        self._computed_indices = None
+class HyDRAHook(BaseHook):
+    def __init__(self, cache_size, **kwargs) -> None:
+        super().__init__(use_hessian=kwargs.get("use_hessian", False))
+        self._cache_size: int = cache_size
+        self._trainer: None | Trainer = None
+
         self._delayed_approximation_computations: dict = {}
-        self._training_set_size = None
-        self.__hyper_parameter_size = None
+        self.__hyper_parameter_size: None | int = None
 
-        self.use_hessian = kwargs.get("use_hessian", False)
-        if self.use_hessian:
-            self._hvp_hook: BatchHVPHook = BatchHVPHook()
-            self._hvp_hook.disable()
+        self._hessian_hyper_gradient_dict: SyncedTensorDict | None = None
+        self._hessian_computation_arguments: dict = {}
+        self.__hvp_arguments: dict = {}
+        self.use_approximation = False
 
-        self._hessian_hyper_gradient_dict = None
-        self._hessian_computation_arguments = None
-        self._hvp_arguments = None
-        self.use_approximation = kwargs.get("use_approximation", None)
-
-        if self.use_approximation is None:
+        if kwargs.get("use_approximation", None) is None:
             self.use_approximation = not self.use_hessian
 
-        self._approx_hyper_gradient_dict = None
+        self._approx_hyper_gradient_dict: SyncedTensorDict | None = None
 
     def _before_batch(self, executor, inputs, targets, **kwargs):
         trainer = executor
         if self._trainer is None:
             self._trainer = trainer
-        if self._training_set_size is None:
-            self._training_set_size = trainer.dataset_size
+        assert self._training_set_size is not None
 
         if self.use_hessian:
             assert not self._hessian_computation_arguments
             self._hessian_computation_arguments = {}
-            self._hvp_arguments = {
+            self.__hvp_arguments = {
                 "executor": trainer,
                 "inputs": inputs,
                 "targets": targets,
             }
 
     @property
+    def trainer(self) -> Trainer:
+        assert self._trainer is not None
+        return self._trainer
+
+    @property
     def sample_gradient_dict(self):
         return self._sample_gradient_hook.result_dict
 
-    def get_save_dir(self, trainer=None):
-        if self.__save_dir is None:
-            self.__save_dir = os.path.join(trainer.save_dir, "HyDRA")
-            os.makedirs(self.__save_dir, exist_ok=True)
-        return self.__save_dir
+    def __get_save_dir(self, trainer: Trainer) -> str:
+        save_dir = trainer.save_dir
+        assert save_dir is not None
+        save_dir = os.path.join(save_dir, "HyDRA")
+        os.makedirs(save_dir, exist_ok=True)
+        return save_dir
 
-    def _before_execute(self, **kwargs):
+    def _do_delayed_computation(
+        self,
+        use_approximation: bool,
+        index: int,
+        hessian_vector_product: OptionalTensor = None,
+    ) -> None:
+        raise NotImplementedError()
+
+    def _before_execute(self, **kwargs) -> None:
+        super()._before_execute(**kwargs)
         trainer = kwargs["executor"]
-        if not self._computed_indices:
-            self._computed_indices = set(range(len(trainer.dataset)))
-        else:
-            get_logger().info("only compute %s indices", len(self._computed_indices))
         with open(
-            os.path.join(self.get_save_dir(trainer), "tracking_indices.json"),
+            os.path.join(self.__get_save_dir(trainer), "tracking_indices.json"),
+            encoding="utf8",
             mode="wt",
         ) as f:
-            json.dump(list(self._computed_indices), f)
+            json.dump(list(self.computed_indices), f)
         if self.use_hessian:
             get_logger().info("use hessian to compute hyper-gradients")
             self._hessian_hyper_gradient_dict = HyDRAHook.create_hypergradient_dict(
                 cache_size=self._cache_size,
                 storage_dir=os.path.join(
-                    self.get_save_dir(trainer),
+                    self.__get_save_dir(trainer),
                     "hessian_hyper_gradient_dir",
                 ),
             )
@@ -96,7 +101,7 @@ class HyDRAHook(Hook):
             self._approx_hyper_gradient_dict = HyDRAHook.create_hypergradient_dict(
                 cache_size=self._cache_size,
                 storage_dir=os.path.join(
-                    self.get_save_dir(trainer),
+                    self.__get_save_dir(trainer),
                     "approximation_hyper_gradient_dir",
                 ),
             )
@@ -112,31 +117,21 @@ class HyDRAHook(Hook):
                 stripable=True,
             )
 
-    def set_computed_indices(self, computed_indices) -> None:
-        self._computed_indices = set(computed_indices)
-        self._sample_gradient_hook.set_computed_indices(computed_indices)
-
     def _after_execute(self, **kwargs):
         get_logger().info("end hyper-gradient tracking")
         trainer = kwargs["executor"]
         trainer.remove_named_hook(name="prepare_hook")
-        tester = trainer.get_inferencer(phase=MachineLearningPhase.Test)
-        test_gradient = tester.get_gradient()
         if self.use_approximation:
             self.__save_hyper_gradients(
                 trainer,
-                test_gradient,
                 use_approximation=True,
             )
         if self.use_hessian:
             self.__save_hyper_gradients(
                 trainer,
-                test_gradient,
                 use_approximation=False,
             )
-        self._sample_gradient_hook.release_queue()
-        if self.use_hessian:
-            self._hvp_hook.release_queue()
+        super()._after_execute(**kwargs)
 
     @classmethod
     def create_hypergradient_dict(
@@ -151,37 +146,42 @@ class HyDRAHook(Hook):
         )
         return tensor_dict
 
-    def __prepare_hook(self, sample_indices, **kwargs):
+    def __prepare_hook(self, sample_indices: list[torch.Tensor], **kwargs: Any) -> None:
         if self.use_approximation:
-            instance_indices = {idx.data.item() for idx in sample_indices}
-            batch_gradient_indices: set = instance_indices & self._computed_indices
+            instance_indices: set[int] = {idx.data.item() for idx in sample_indices}
+            batch_gradient_indices: set[int] = instance_indices & self.computed_indices
             if batch_gradient_indices:
                 self._get_hyper_gradient_dict(self.use_approximation).prefetch(
                     batch_gradient_indices
                 )
 
-    def _set_hyper_gradient_tensors(self, index, use_approximation, *tensors):
+    def _set_hyper_gradient_tensors(self, index, use_approximation, *tensors) -> None:
         if self.__hyper_parameter_size is None:
             self.__hyper_parameter_size = tensors[0].shape[0]
         self._get_hyper_gradient_dict(use_approximation)[index] = torch.cat(tensors)
 
-    def _decode_hyper_gradient_tensors(self, tensor):
+    def _decode_hyper_gradient_tensors(self, tensor) -> tuple:
+        assert self.__hyper_parameter_size is not None
         return torch.split(tensor, self.__hyper_parameter_size)
 
-    def _get_hyper_gradient_tensors(self, index, use_approximation, none_num=1):
+    def _get_hyper_gradient_tensors(
+        self, index: int, use_approximation: bool, none_num: int = 1
+    ) -> tuple:
         data = self._get_hyper_gradient_dict(use_approximation)[index]
         if data is None:
             return (None,) * none_num
         return self._decode_hyper_gradient_tensors(data)
 
-    def _get_hyper_gradient_dict(self, use_approximation):
-        return (
+    def _get_hyper_gradient_dict(self, use_approximation: bool) -> SyncedTensorDict:
+        res = (
             self._approx_hyper_gradient_dict
             if use_approximation
             else self._hessian_hyper_gradient_dict
         )
+        assert res is not None
+        return res
 
-    def _do_all_delayed_computation(self):
+    def _do_all_delayed_computation(self) -> None:
         if self.use_approximation:
             delayed_keys = list(self._delayed_approximation_computations.keys())
             assert delayed_keys
@@ -194,21 +194,21 @@ class HyDRAHook(Hook):
                     self._do_delayed_computation(True, k)
             return
 
-    def _do_computation_with_hessian(self):
+    def _do_computation_with_hessian(self) -> None:
         for chunk in split_list_to_chunks(
-            list(self._computed_indices), self._cache_size
+            list(self.computed_indices), self._cache_size
         ):
             hessian_vector_product_dict = self._get_hvp(chunk)
             for index in chunk:
                 hessian_vector_product = hessian_vector_product_dict.get(index, None)
                 if hessian_vector_product is not None:
                     hessian_vector_product = hessian_vector_product.to(
-                        self._trainer.device
+                        self.trainer.device
                     )
                     self._check_overflow_and_underflow(hessian_vector_product)
                 self._do_delayed_computation(False, index, hessian_vector_product)
 
-    def _check_overflow_and_underflow(self, tensor):
+    def _check_overflow_and_underflow(self, tensor: OptionalTensor) -> None:
         if tensor is None:
             return
         if torch.any(torch.isnan(tensor)):
@@ -220,36 +220,8 @@ class HyDRAHook(Hook):
             get_logger().error("traceback:%s", str(traceback.extract_stack(limit=10)))
             raise AssertionError()
 
-    def _optional_addition(self, *args):
-        res = None
-        for a in args:
-            if a is None:
-                continue
-            if res is None:
-                res = a
-            else:
-                res = res + a
-        return res
-
-    def _optional_multiplication(self, *args):
-        res = None
-        for a in args:
-            if a is None:
-                return None
-            if res is None:
-                res = a
-            else:
-                res = res * a
-        return res
-
-    def _optional_division(self, a, b, epsilon):
-        if a is None:
-            return None
-        if epsilon is None:
-            return a / b
-        return a / (b + epsilon)
-
-    def __save_hyper_gradients(self, trainer, test_gradient, use_approximation):
+    def __save_hyper_gradients(self, trainer, use_approximation):
+        test_gradient = get_test_gradient(trainer)
         contribution = {}
         get_logger().info("begin do _do_all_delayed_computation")
         self._do_all_delayed_computation()
@@ -267,21 +239,22 @@ class HyDRAHook(Hook):
         if use_approximation:
             json_name = "approx_hydra_contribution.json"
         with open(
-            os.path.join(self.get_save_dir(trainer), json_name),
+            os.path.join(self.__get_save_dir(trainer), json_name),
             mode="wt",
             encoding="utf-8",
         ) as f:
             json.dump(contribution, f)
         with open(
-            os.path.join(self.get_save_dir(trainer), "training_set_size"), "wb"
+            os.path.join(self.__get_save_dir(trainer), "training_set_size"), "wb"
         ) as f:
             pickle.dump(self._training_set_size, f)
 
-    def _get_hvp(self, chunk):
+    def _get_hvp(self, chunk) -> dict:
+        assert self._hessian_hyper_gradient_dict is not None
         self._hessian_hyper_gradient_dict.prefetch(chunk)
         hyper_gradients = []
         hyper_gradient_indices = []
-        hessian_vector_product_dict = {}
+        hessian_vector_product_dict: dict = {}
         for index in chunk:
             hyper_gradient = self.get_hyper_gradient(index, use_approximation=False)
             if hyper_gradient is not None:
@@ -290,18 +263,18 @@ class HyDRAHook(Hook):
         if not hyper_gradients:
             return hessian_vector_product_dict
         with TimeCounter(log_prefix=f"hvp chunk size {len(hyper_gradients)}"):
-            self._hvp_hook.add_task(
+            self.batch_hvp_hook.add_task(
                 data=hyper_gradients,
                 batch_index=0,
-                **self._hvp_arguments,
+                **self.__hvp_arguments,
             )
-            hessian_vector_products = self._hvp_hook.result_dict
+            hessian_vector_products = self.batch_hvp_hook.result_dict
             hessian_vector_product_dict = {
                 gradient_idx: hessian_vector_products[product_idx]
                 for product_idx, gradient_idx in enumerate(hyper_gradient_indices)
             }
-            self._hvp_hook.reset_result()
-            assert not self._hvp_hook.result_dict
+            self.batch_hvp_hook.reset_result()
+            assert not self.batch_hvp_hook.result_dict
             return hessian_vector_product_dict
 
     def get_hyper_gradient(self, index, use_approximation):

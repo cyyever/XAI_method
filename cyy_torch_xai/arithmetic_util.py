@@ -51,7 +51,7 @@ def optional_multiplication(*args: OptionalTensor) -> OptionalTensor:
 
 
 def optional_division(
-    a: OptionalTensor, b: torch.Tensor, epsilon: float
+    a: OptionalTensor, b: torch.Tensor, epsilon: float | None
 ) -> OptionalTensor:
     if a is None:
         return None

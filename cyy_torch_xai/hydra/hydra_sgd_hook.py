@@ -1,5 +1,6 @@
-from cyy_torch_toolbox import cat_tensor_dict
+from cyy_torch_toolbox import OptionalTensor, Trainer, cat_tensor_dict
 
+from ..arithmetic_util import optional_addition, optional_multiplication
 from .hydra_hook import HyDRAHook
 
 
@@ -8,8 +9,8 @@ class HyDRASGDHook(HyDRAHook):
     __lr = None
     __weight_decay = None
 
-    def _before_batch(self, executor, **kwargs):
-        trainer = executor
+    def _before_batch(self, executor, **kwargs) -> None:
+        trainer: Trainer = executor
         optimizer = trainer.get_optimizer()
         assert len(optimizer.param_groups) == 1
 
@@ -19,7 +20,7 @@ class HyDRASGDHook(HyDRAHook):
         super()._before_batch(executor=executor, **kwargs)
 
     def _after_batch(self, executor, batch_size, **kwargs):
-        for idx in self._computed_indices:
+        for idx in self.computed_indices:
             instance_gradient = self.sample_gradient_dict.get(idx, None)
             if instance_gradient is not None:
                 instance_gradient = (
@@ -46,8 +47,11 @@ class HyDRASGDHook(HyDRAHook):
         self._sample_gradient_hook.reset_result()
 
     def _do_delayed_computation(
-        self, use_approximation: bool, index, hessian_vector_product=None
-    ):
+        self,
+        use_approximation: bool,
+        index: int,
+        hessian_vector_product: OptionalTensor = None,
+    ) -> None:
         hyper_gradient, mom_gradient = self._get_hyper_gradient_tensors(
             index, use_approximation, none_num=2
         )
@@ -58,22 +62,23 @@ class HyDRASGDHook(HyDRAHook):
             argument_dict = self._delayed_approximation_computations
         else:
             argument_dict = self._hessian_computation_arguments
+        instance_gradient = None
         for arguments in argument_dict.pop(index):
             (momentum, weight_decay, learning_rate, instance_gradient) = arguments
-            gradient_gradient = self._optional_addition(
-                self._optional_multiplication(hyper_gradient, weight_decay),
+            gradient_gradient = optional_addition(
+                optional_multiplication(hyper_gradient, weight_decay),
                 instance_gradient,
                 hessian_vector_product,
             )
             self._check_overflow_and_underflow(gradient_gradient)
 
-            mom_gradient = self._optional_addition(
-                self._optional_multiplication(mom_gradient, momentum), gradient_gradient
+            mom_gradient = optional_addition(
+                optional_multiplication(mom_gradient, momentum), gradient_gradient
             )
             self._check_overflow_and_underflow(mom_gradient)
-            hyper_gradient = self._optional_addition(
+            hyper_gradient = optional_addition(
                 hyper_gradient,
-                self._optional_multiplication(mom_gradient, -learning_rate),
+                optional_multiplication(mom_gradient, -learning_rate),
             )
             self._check_overflow_and_underflow(hyper_gradient)
         if instance_gradient is not None:

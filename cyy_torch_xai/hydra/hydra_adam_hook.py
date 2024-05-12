@@ -3,6 +3,8 @@ import math
 import torch
 from cyy_torch_toolbox import cat_tensors_to_vector
 
+from ..arithmetic_util import (optional_addition, optional_division,
+                               optional_multiplication)
 from .hydra_hook import HyDRAHook
 
 
@@ -31,7 +33,7 @@ class HyDRAAdamHook(HyDRAHook):
             self.__beta1, self.__beta2 = optimizer.param_groups[0]["betas"]
         else:
             assert optimizer.param_groups[0]["betas"][0] == self.__beta1
-        for idx in self._computed_indices:
+        for idx in self.computed_indices:
             instance_gradient = self.sample_gradient_dict.get(idx, None)
             if instance_gradient is not None:
                 instance_gradient = (
@@ -102,47 +104,43 @@ class HyDRAAdamHook(HyDRAHook):
             for arguments in argument_dict.pop(index):
                 (instance_gradient, weight_decay, learning_rate) = arguments
 
-                gradient_gradient = self._optional_addition(
-                    self._optional_multiplication(hyper_gradient, weight_decay),
+                gradient_gradient = optional_addition(
+                    optional_multiplication(hyper_gradient, weight_decay),
                     instance_gradient,
                     hessian_vector_product,
                 )
                 self._check_overflow_and_underflow(gradient_gradient)
 
-                first_average_gradient = self._optional_addition(
-                    self._optional_multiplication(first_average_gradient, self.__beta1),
-                    self._optional_multiplication(gradient_gradient, 1 - self.__beta1),
+                first_average_gradient = optional_addition(
+                    optional_multiplication(first_average_gradient, self.__beta1),
+                    optional_multiplication(gradient_gradient, 1 - self.__beta1),
                 )
                 self._check_overflow_and_underflow(first_average_gradient)
-                second_average_gradient = self._optional_addition(
-                    self._optional_multiplication(
-                        second_average_gradient, self.__beta2
-                    ),
-                    self._optional_multiplication(
-                        gradient_gradient, 2 - 2 * self.__beta2
-                    ),
+                second_average_gradient = optional_addition(
+                    optional_multiplication(second_average_gradient, self.__beta2),
+                    optional_multiplication(gradient_gradient, 2 - 2 * self.__beta2),
                 )
                 self._check_overflow_and_underflow(second_average_gradient)
-                corrected_first_average_gradient = self._optional_division(
+                corrected_first_average_gradient = optional_division(
                     first_average_gradient,
                     1 - (self.__beta1**self.__step),
                     epsilon=None,
                 )
                 self._check_overflow_and_underflow(corrected_first_average_gradient)
-                corrected_second_average_gradient = self._optional_division(
+                corrected_second_average_gradient = optional_division(
                     second_average_gradient,
                     1 - (self.__beta2**self.__step),
                     epsilon=None,
                 )
                 self._check_overflow_and_underflow(corrected_second_average_gradient)
-                tmp = self._optional_division(
-                    self._optional_addition(
-                        self._optional_multiplication(
+                tmp = optional_division(
+                    optional_addition(
+                        optional_multiplication(
                             corrected_first_average_gradient,
                             self.__corrected_second_average_sqrt_with_epsilon,
                         ),
-                        self._optional_division(
-                            self._optional_multiplication(
+                        optional_division(
+                            optional_multiplication(
                                 self.__corrected_first_average,
                                 corrected_second_average_gradient,
                             ),
@@ -155,8 +153,8 @@ class HyDRAAdamHook(HyDRAHook):
                     epsilon=self.__eps,
                 )
                 self._check_overflow_and_underflow(tmp)
-                hyper_gradient = self._optional_addition(
-                    hyper_gradient, self._optional_multiplication(tmp, -learning_rate)
+                hyper_gradient = optional_addition(
+                    hyper_gradient, optional_multiplication(tmp, -learning_rate)
                 )
                 self._check_overflow_and_underflow(hyper_gradient)
 

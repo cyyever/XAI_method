@@ -12,7 +12,7 @@ from .lean_hydra_hook import LeanHyDRAHook
 class LeanHyDRASGDHook(LeanHyDRAHook):
     __mom_product: OptionalTensor = None
 
-    def _after_batch(self, batch_size, **kwargs):
+    def _after_batch(self, batch_size, **kwargs) -> None:
         counter = TimeCounter()
         optimizer = self._get_optimizer(**kwargs)
 

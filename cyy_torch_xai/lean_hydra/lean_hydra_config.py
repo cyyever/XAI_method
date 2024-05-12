@@ -25,7 +25,9 @@ class LeanHyDRAConfig(Config):
         optimizer = self.deterministic_training.last_trainer.get_optimizer()
         match optimizer:
             case torch.optim.SGD():
-                hydra_hook = LeanHyDRASGDHook(test_gradient=test_gradient)
+                hydra_hook = LeanHyDRASGDHook(
+                    test_gradient=test_gradient, use_hessian=False
+                )
             case _:
                 raise NotImplementedError(f"Unsupported optimizer {type(optimizer)}")
         return hydra_hook
