@@ -1,3 +1,4 @@
+import torch
 from cyy_torch_toolbox import OptionalTensor, Trainer, cat_tensor_dict
 
 from ..arithmetic_util import optional_addition, optional_multiplication
@@ -5,9 +6,9 @@ from .hydra_hook import HyDRAHook
 
 
 class HyDRASGDHook(HyDRAHook):
-    __momentum = None
-    __lr = None
-    __weight_decay = None
+    __momentum: None | torch.Tensor = None
+    __lr: float | None = None
+    __weight_decay: float | None = None
 
     def _before_batch(self, executor, **kwargs) -> None:
         trainer: Trainer = executor
