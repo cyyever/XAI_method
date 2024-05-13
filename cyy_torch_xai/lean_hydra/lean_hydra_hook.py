@@ -20,7 +20,6 @@ class LeanHyDRAHook(BaseHook):
         return dot_product(self.__test_gradient, result)
 
     def _after_execute(self, **kwargs) -> None:
-        super()._after_execute(**kwargs)
         assert self._contributions is not None
         assert self._contributions.shape[0] == self._training_set_size
         save_dir = "."

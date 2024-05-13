@@ -41,7 +41,5 @@ class HyDRAConfig(Config):
                     phase=MachineLearningPhase.Training
                 )
             ).iid_sample_indices(self.tracking_percentage)
-
-            tracking_indices: list = list(subset)
-            hydra_hook.set_computed_indices(tracking_indices)
+            hydra_hook.set_computed_indices(subset)
         return {"trainer": trainer, "hook": hydra_hook}
