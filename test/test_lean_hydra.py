@@ -1,7 +1,7 @@
 import importlib
 
 from cyy_torch_toolbox.concurrency import TorchProcessPool
-from cyy_torch_xai.lean_hydra.lean_hydra_config import LeanHyDRAConfig
+from cyy_torch_xai.lean_hydra import LeanHyDRAConfig
 
 has_cyy_torch_vision: bool = importlib.util.find_spec("cyy_torch_vision") is not None
 
