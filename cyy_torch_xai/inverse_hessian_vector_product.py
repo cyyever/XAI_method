@@ -7,9 +7,7 @@ from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation.batch_hvp.batch_hvp_hook import \
     BatchHVPHook
 from cyy_torch_toolbox import (ExecutorHookPoint, Inferencer,
-                               StopExecutingException)
-from cyy_torch_toolbox.tensor import tensor_to
-from cyy_torch_toolbox.typing import TensorDict
+                               StopExecutingException, TensorDict, tensor_to)
 
 
 def __vector_diff(a: TensorDict, b: TensorDict) -> float:
@@ -21,7 +19,9 @@ def __vector_diff(a: TensorDict, b: TensorDict) -> float:
     return math.sqrt(product)
 
 
-def __result_transform(scale, data_index: int, result, data: dict) -> dict:
+def __result_transform(
+    scale, data_index: int, result: torch.Tensor, data: dict
+) -> dict:
     return {k: v - result[k] / scale for k, v in data.items()}
 
 
