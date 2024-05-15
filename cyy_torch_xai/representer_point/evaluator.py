@@ -25,9 +25,10 @@ class OutputFeatureModelEvaluator:
         self.__sample_indices = kwargs["sample_indices"].tolist()
         return self.evaluator.__call__(*args, **kwargs)
 
-    def __feature_hook_impl(self, input_tensor: torch.Tensor) -> Any:
+    def __feature_hook_impl(self, module, *args, **kwargs) -> Any:
+        input_tensor: torch.Tensor = args[0][0]
         assert input_tensor.shape[0] == len(self.__sample_indices)
-        self.__output_features = dict(zip(self.__sample_indices, input_tensor.clone()))
+        self.__output_features |= dict(zip(self.__sample_indices, input_tensor.clone()))
         return None
 
     def __getattr__(self, name: str) -> Any:
