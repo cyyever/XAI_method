@@ -4,6 +4,7 @@ from cyy_naive_lib.log import log_error
 from cyy_torch_toolbox import (IndicesType, Inferencer, MachineLearningPhase,
                                OptionalIndicesType, Trainer)
 
+from ..typing import SampleContributionDict
 from .evaluator import OutputFeatureModelEvaluator
 
 
@@ -25,7 +26,7 @@ def compute_representer_point_values(
     trainer: Trainer,
     test_indices: IndicesType,
     training_indices: OptionalIndicesType = None,
-) -> dict[int, float]:
+) -> list[SampleContributionDict]:
     trainer = copy.deepcopy(trainer)
     test_inferencer = __get_inferencer(
         trainer=trainer,
@@ -34,13 +35,24 @@ def compute_representer_point_values(
     )
     test_inferencer.inference()
     assert isinstance(test_inferencer.model_evaluator, OutputFeatureModelEvaluator)
-    log_error("aaa %s", len(test_inferencer.model_evaluator.output_features))
-    log_error("bbbb %s", len(set(test_indices)))
     assert len(test_inferencer.model_evaluator.output_features) == len(
         set(test_indices)
     )
 
+    test_inferencer = __get_inferencer(
+        trainer=trainer,
+        phase=MachineLearningPhase.Training,
+        sample_indices=training_indices,
+    )
+    test_inferencer.inference()
+    assert isinstance(test_inferencer.model_evaluator, OutputFeatureModelEvaluator)
+    assert training_indices is None or len(
+        test_inferencer.model_evaluator.output_features
+    ) == len(set(training_indices))
+
     # training_inferencer = trainer.get_inferencer(
     #     phase=MachineLearningPhase.Training, deepcopy_model=True
     # )
-    return {}
+    log_error("aaa %s", len(test_inferencer.model_evaluator.output_features))
+    log_error("bbbb %s", len(set(test_indices)))
+    return []
