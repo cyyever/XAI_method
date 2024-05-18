@@ -9,7 +9,7 @@ from cyy_torch_toolbox.typing import ModelGradient, OptionalIndicesType
 
 from .inverse_hessian_vector_product import \
     stochastic_inverse_hessian_vector_product
-from .typing import SampleContributionDict
+from .typing import SampleContributions
 from .util import get_test_gradient
 
 
@@ -17,7 +17,7 @@ def compute_relatif_values(
     trainer: Trainer,
     computed_indices: OptionalIndicesType = None,
     test_gradient: ModelGradient | None = None,
-) -> SampleContributionDict:
+) -> SampleContributions:
     if test_gradient is None:
         test_gradient = get_test_gradient(trainer=trainer)
 

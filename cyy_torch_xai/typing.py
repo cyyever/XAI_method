@@ -1,3 +1,3 @@
 from typing import TypeAlias
 
-SampleContributionDict: TypeAlias = dict[int, float]
+SampleContributions: TypeAlias = dict[int, float]

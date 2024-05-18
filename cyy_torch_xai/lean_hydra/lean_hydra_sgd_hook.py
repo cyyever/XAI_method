@@ -29,9 +29,7 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
         assert self.__mom_product is not None
 
         for idx, dot_product in self._sample_gradient_hook.result_dict.items():
-            self.__mom_product[idx] += (
-                dot_product * self._training_set_size / batch_size
-            )
+            self.__mom_product[idx] += dot_product * self.training_set_size / batch_size
         self._sample_gradient_hook.reset_result()
         assert id(self._contributions) != id(self.__mom_product)
         self._contributions -= lr * self.__mom_product
@@ -41,6 +39,5 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
         )
 
     def _after_execute(self, **kwargs: Any) -> None:
-        assert self._training_set_size is not None
-        self._contributions = -self.contributions / self._training_set_size
+        self._contributions = -self.contributions / self.training_set_size
         super()._after_execute(**kwargs)

@@ -6,6 +6,7 @@ import torch
 from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
     SampleGradientHook
+from cyy_torch_toolbox import Executor
 from cyy_torch_toolbox.tensor import dot_product
 
 from .base_hook import TracInBaseHook
@@ -22,9 +23,8 @@ class TracInHook(TracInBaseHook):
         self._sample_grad_hook.set_computed_indices(self.__tracked_indices)
         get_logger().info("track %s indices", len(self.__tracked_indices))
 
-    def _after_batch(self, executor, batch_size: int, **kwargs) -> None:
-        trainer = executor
-        optimizer = trainer.get_optimizer()
+    def _after_batch(self, executor: Executor, batch_size: int, **kwargs) -> None:
+        optimizer = executor.get_optimizer()
         assert len(optimizer.param_groups) == 1
         if not isinstance(optimizer, torch.optim.SGD):
             raise RuntimeError("optimizer is not SGD")
@@ -45,9 +45,10 @@ class TracInHook(TracInBaseHook):
         get_logger().error("after reset")
 
     def _after_execute(self, executor, **kwargs: Any) -> None:
+        influence_values: dict = self._influence_values
         if -1 in self._influence_values:
             assert len(self._influence_values) == 1
-            self._influence_values = self._influence_values[-1]
+            influence_values = self._influence_values[-1]
         with open(
             os.path.join(
                 executor.save_dir,
@@ -56,5 +57,5 @@ class TracInHook(TracInBaseHook):
             mode="wt",
             encoding="utf-8",
         ) as f:
-            json.dump(self._influence_values, f)
+            json.dump(influence_values, f)
         self._sample_grad_hook.release_queue()

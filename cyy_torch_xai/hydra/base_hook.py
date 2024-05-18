@@ -6,7 +6,7 @@ from cyy_torch_algorithm.computation import BatchHVPHook, SampleGradientHook
 from cyy_torch_toolbox import (Hook, IndicesType, ModelUtil, OptionalTensor,
                                get_device)
 
-from ..typing import SampleContributionDict
+from ..typing import SampleContributions
 
 
 class BaseHook(Hook):
@@ -20,7 +20,7 @@ class BaseHook(Hook):
         self._sample_gradient_hook: SampleGradientHook = SampleGradientHook()
         self.__computed_indices: set[int] | None = None
         self._contributions: OptionalTensor = None
-        self._training_set_size: int | None = None
+        self.__training_set_size: int | None = None
 
     @property
     def batch_hvp_hook(self) -> BatchHVPHook:
@@ -29,8 +29,8 @@ class BaseHook(Hook):
 
     @property
     def training_set_size(self) -> int:
-        assert self._training_set_size is not None
-        return self._training_set_size
+        assert self.__training_set_size is not None
+        return self.__training_set_size
 
     @property
     def use_hessian(self) -> bool:
@@ -44,10 +44,10 @@ class BaseHook(Hook):
     def _before_execute(self, **kwargs: Any) -> None:
         if "executor" in kwargs:
             trainer = kwargs["executor"]
-            self._training_set_size = trainer.dataset_size
+            self.__training_set_size = trainer.dataset_size
             device = trainer.device
         else:
-            self._training_set_size = kwargs["training_set_size"]
+            self.__training_set_size = kwargs["training_set_size"]
             device = get_device()
 
         if self.__computed_indices is None:
@@ -81,7 +81,7 @@ class BaseHook(Hook):
         self._sample_gradient_hook.set_computed_indices(computed_indices)
 
     @property
-    def contribution_dict(self) -> SampleContributionDict:
+    def contribution_dict(self) -> SampleContributions:
         return {idx: self.contributions[idx].item() for idx in self.computed_indices}
 
     def _after_execute(self, **kwargs: Any) -> None:

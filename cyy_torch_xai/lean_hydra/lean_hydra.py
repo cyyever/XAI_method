@@ -4,7 +4,7 @@ import torch
 from cyy_torch_toolbox import (ExecutorHookPoint, HookCollection, IndicesType,
                                ModelEvaluator, ModelGradient)
 
-from ..typing import SampleContributionDict
+from ..typing import SampleContributions
 from .lean_hydra_sgd_hook import LeanHyDRASGDHook
 
 
@@ -51,7 +51,7 @@ class LeanHyDRA:
             optimizer=self.optimizer,
         )
 
-    def get_contribution(self, **kwargs: Any) -> SampleContributionDict:
+    def get_contribution(self, **kwargs: Any) -> SampleContributions:
         if not self.__end_exe:
             self.__hooks.exec_hooks(hook_point=ExecutorHookPoint.AFTER_EXECUTE)
             self.__end_exe = True

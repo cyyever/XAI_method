@@ -7,7 +7,7 @@ from cyy_torch_toolbox import IterationUnit, MachineLearningPhase
 from cyy_torch_toolbox.hook import Hook
 from cyy_torch_toolbox.typing import OptionalIndicesType, SampleGradients
 
-from ..typing import SampleContributionDict
+from ..typing import SampleContributions
 
 
 class TracInBaseHook(Hook):
@@ -21,7 +21,7 @@ class TracInBaseHook(Hook):
         self.__check_point_gap = check_point_gap
         self.__test_sample_indices: OptionalIndicesType = test_sample_indices
         self.__test_grad_dict: SampleGradients = {}
-        self._influence_values: SampleContributionDict = {}
+        self._influence_values: dict[int, SampleContributions] = {}
         self.__batch_num: int = 0
 
     @property
@@ -29,7 +29,7 @@ class TracInBaseHook(Hook):
         return self.__test_grad_dict
 
     @property
-    def influence_values(self) -> SampleContributionDict:
+    def influence_values(self) -> dict[int, SampleContributions]:
         return self._influence_values
 
     def _before_execute(self, **kwargs: Any) -> None:

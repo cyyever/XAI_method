@@ -4,7 +4,7 @@ from cyy_naive_lib.log import log_error
 from cyy_torch_toolbox import (IndicesType, Inferencer, MachineLearningPhase,
                                OptionalIndicesType, Trainer)
 
-from ..typing import SampleContributionDict
+from ..typing import SampleContributions
 from .evaluator import OutputFeatureModelEvaluator
 
 
@@ -26,7 +26,7 @@ def compute_representer_point_values(
     trainer: Trainer,
     test_indices: IndicesType,
     training_indices: OptionalIndicesType = None,
-) -> list[SampleContributionDict]:
+) -> list[SampleContributions]:
     trainer = copy.deepcopy(trainer)
     test_inferencer = __get_inferencer(
         trainer=trainer,

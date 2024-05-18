@@ -7,7 +7,7 @@ from cyy_torch_toolbox.typing import (IndicesType, ModelGradient,
 
 from .inverse_hessian_vector_product import \
     stochastic_inverse_hessian_vector_product
-from .typing import SampleContributionDict
+from .typing import SampleContributions
 from .util import get_test_gradient
 
 
@@ -15,7 +15,7 @@ def compute_influence_function_values(
     trainer: Trainer,
     computed_indices: OptionalIndicesType = None,
     test_gradient: ModelGradient | None = None,
-) -> SampleContributionDict:
+) -> SampleContributions:
     if test_gradient is None:
         test_gradient = get_test_gradient(trainer=trainer)
 
@@ -26,7 +26,7 @@ def compute_influence_function_values(
         inferencer, vectors=[test_gradient]
     )[0]
 
-    products: SampleContributionDict = get_sample_gvps(
+    products: SampleContributions = get_sample_gvps(
         inferencer=inferencer, vector=product, computed_indices=computed_indices
     )
     return {idx: product / trainer.dataset_size for idx, product in products.items()}
@@ -35,7 +35,7 @@ def compute_influence_function_values(
 def compute_self_influence_function_values(
     trainer: Trainer,
     computed_indices: IndicesType,
-) -> SampleContributionDict:
+) -> SampleContributions:
     inferencer = trainer.get_inferencer(
         phase=MachineLearningPhase.Training, deepcopy_model=False
     )
