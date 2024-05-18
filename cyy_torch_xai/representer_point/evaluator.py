@@ -3,14 +3,14 @@ from typing import Any
 import torch
 import torch.nn
 import torch.utils.hooks
-from cyy_torch_toolbox import ModelEvaluator
+from cyy_torch_toolbox import ModelEvaluator, SampleTensors
 
 
 class OutputFeatureModelEvaluator:
     def __init__(self, evaluator: ModelEvaluator) -> None:
         self.evaluator: ModelEvaluator = evaluator
         self.__sample_indices: list = []
-        self.__output_features: dict[int, torch.Tensor] = {}
+        self.__output_features: SampleTensors = {}
         last_module = self.evaluator.model_util.get_last_underlying_module()
         assert isinstance(last_module, torch.nn.Linear)
         last_module.register_forward_pre_hook(
@@ -18,7 +18,7 @@ class OutputFeatureModelEvaluator:
         )
 
     @property
-    def output_features(self) -> dict:
+    def output_features(self) -> SampleTensors:
         return self.__output_features
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
