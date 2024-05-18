@@ -38,7 +38,7 @@ class HyDRAAdamHook(HyDRAHook):
             if instance_gradient is not None:
                 instance_gradient = (
                     instance_gradient.to(self._trainer.device)
-                    * self._training_set_size
+                    * self.training_set_size
                     / batch_size
                 )
             arguments = (

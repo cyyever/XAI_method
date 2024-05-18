@@ -16,12 +16,11 @@ class LeanHyDRAHook(BaseHook):
         if self._batch_hvp_hook is not None:
             self._batch_hvp_hook.set_vectors([self.__test_gradient])
 
-    def _dot_product(self, result, **kwargs):
+    def _dot_product(self, result, **kwargs) -> float:
         return dot_product(self.__test_gradient, result)
 
     def _after_execute(self, **kwargs) -> None:
-        assert self._contributions is not None
-        assert self._contributions.shape[0] == self._training_set_size
+        assert self.contributions.shape[0] == self.training_set_size
         save_dir = "."
         if "executor" in kwargs:
             trainer = kwargs["executor"]
@@ -33,6 +32,6 @@ class LeanHyDRAHook(BaseHook):
             mode="wt",
             encoding="utf-8",
         ) as f:
-            contributions = self._contributions.cpu().tolist()
+            contributions = self.contributions.cpu().tolist()
             json.dump({idx: contributions[idx] for idx in self.computed_indices}, f)
         super()._after_execute(**kwargs)

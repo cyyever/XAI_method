@@ -43,7 +43,6 @@ class HyDRAHook(BaseHook):
         trainer = executor
         if self._trainer is None:
             self._trainer = trainer
-        assert self._training_set_size is not None
 
         if self.use_hessian:
             assert not self._hessian_computation_arguments
@@ -234,7 +233,7 @@ class HyDRAHook(BaseHook):
         for index, value in tensor_dict.items():
             hyper_gradient = self._decode_hyper_gradient_tensors(value)[0]
             contribution[index] = (
-                -(test_gradient @ hyper_gradient) / self._training_set_size
+                -(test_gradient @ hyper_gradient) / self.training_set_size
             ).item()
             tensor_dict[index] = hyper_gradient
         assert contribution
@@ -250,7 +249,7 @@ class HyDRAHook(BaseHook):
         with open(
             os.path.join(self.__get_save_dir(trainer), "training_set_size"), "wb"
         ) as f:
-            pickle.dump(self._training_set_size, f)
+            pickle.dump(self.training_set_size, f)
 
     def _get_hvp(self, chunk) -> dict:
         assert self._hessian_hyper_gradient_dict is not None
