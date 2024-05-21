@@ -1,4 +1,3 @@
-import json
 import os
 from typing import Any
 
@@ -24,16 +23,17 @@ class TracInHook(TracInBaseHook):
             for k2, sample_grad in self._sample_gradient_hook.result_dict.items():
                 if k2 not in self._influence_values[k]:
                     self._influence_values[k][k2] = 0
-                self._influence_values[k][k2] += (
-                    dot_product(test_grad, sample_grad) * lr / batch_size
+                value = self._contribution.get_sample_contribution(
+                    tracked_index=k2, test_index=k
+                )
+                self._contribution.set_sample_contribution(
+                    tracked_index=k2,
+                    test_index=k,
+                    value=value + dot_product(test_grad, sample_grad) * lr / batch_size,
                 )
         self._sample_gradient_hook.reset_result()
 
     def _after_execute(self, executor, **kwargs: Any) -> None:
-        influence_values: dict = self._influence_values
-        if -1 in self._influence_values:
-            assert len(self._influence_values) == 1
-            influence_values = self._influence_values[-1]
         os.makedirs(executor.save_dir, exist_ok=True)
         with open(
             os.path.join(
@@ -43,5 +43,5 @@ class TracInHook(TracInBaseHook):
             mode="wt",
             encoding="utf-8",
         ) as f:
-            json.dump(influence_values, f)
+            self._contribution.dump(f)
         super()._after_execute(executor=executor, **kwargs)

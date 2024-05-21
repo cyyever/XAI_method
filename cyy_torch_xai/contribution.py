@@ -1,3 +1,5 @@
+import json
+
 from cyy_torch_toolbox import IndicesType
 
 from .typing import SubsetIndices
@@ -23,12 +25,17 @@ class SubsetContribution:
         self.__values[test_subset][subset] = value
 
     def get_sample_contribution(
-        self, tracked_index: int, test_index: int | None = None
+        self,
+        tracked_index: int,
+        test_index: int | None = None,
+        default_value: float = 0,
     ) -> float:
         subset = self.__get_set(tracked_index)
         assert subset in self.tracked_subsets
         test_subset = self.__get_set(test_index)
-        return self.__values[test_subset][subset]
+        if test_subset not in self.__values:
+            return default_value
+        return self.__values[test_subset].get(subset, default_value)
 
     def clear_contributions(self) -> None:
         self.__values.clear()
@@ -60,3 +67,10 @@ class SubsetContribution:
             assert len(t) == 1
             indices.add(t[0])
         return indices
+
+    def dump(self, file) -> None:
+        data = self.__values
+        if None in self.__values and len(self.__values) == 1:
+            data = self.__values[None]
+        assert data
+        json.dump(data, file)

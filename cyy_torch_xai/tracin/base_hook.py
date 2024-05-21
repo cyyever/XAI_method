@@ -7,8 +7,7 @@ from cyy_torch_toolbox import (IterationUnit, MachineLearningPhase,
                                OptionalIndicesType, SampleGradients)
 
 from ..base_hook import SampleGradientXAIHook
-from ..contribution_value import ContributionValue
-from ..typing import SampleContributions
+from ..contribution import SubsetContribution
 
 
 class TracInBaseHook(SampleGradientXAIHook):
@@ -21,21 +20,16 @@ class TracInBaseHook(SampleGradientXAIHook):
         self.__check_point_gap = check_point_gap
         self.__test_sample_indices: OptionalIndicesType = test_sample_indices
         self.__test_gradients: SampleGradients = {}
-        self.contribution_value: ContributionValue = ContributionValue()
-        self._influence_values: dict[int, SampleContributions] = {}
+        self._contribution: SubsetContribution = SubsetContribution()
         self.__batch_num: int = 0
 
     @property
     def test_gradients(self) -> SampleGradients:
         return self.__test_gradients
 
-    @property
-    def influence_values(self) -> dict[int, SampleContributions]:
-        return self._influence_values
-
     def _before_execute(self, **kwargs: Any) -> None:
         super()._before_execute(**kwargs)
-        self._influence_values = {}
+        self._contribution.clear_contributions()
 
     def __compute_test_sample_gradients(self, executor, **kwargs: Any) -> None:
         if self.__test_gradients:
