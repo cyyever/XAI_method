@@ -36,14 +36,15 @@ class TracInBaseHook(SampleGradientXAIHook):
         self._influence_values = {}
 
     def __compute_test_sample_gradients(self, executor, **kwargs: Any) -> None:
-        if self.__batch_num != 0 and self.__check_point_gap is not None:
+        if self.__check_point_gap is not None:
             gap, unit = self.__check_point_gap
             match unit:
                 case IterationUnit.Batch:
-                    if self.__batch_num % gap != 0:
+                    if self.__batch_num != 0 and self.__batch_num % gap != 0:
                         return
                 case IterationUnit.Epoch:
-                    if kwargs["epoch"] % gap != 0:
+                    epoch = kwargs["epoch"]
+                    if epoch != 0 and epoch % gap != 0:
                         return
                 case _:
                     raise RuntimeError(unit)
@@ -59,6 +60,6 @@ class TracInBaseHook(SampleGradientXAIHook):
             )
 
     @torch.no_grad()
-    def _before_batch(self, **kwargs) -> None:
+    def _before_batch(self, **kwargs: Any) -> None:
         self.__compute_test_sample_gradients(**kwargs)
         self.__batch_num += 1
