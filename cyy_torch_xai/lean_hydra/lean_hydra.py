@@ -55,8 +55,4 @@ class LeanHyDRA:
         if not self.__end_exe:
             self.__hooks.exec_hooks(hook_point=ExecutorHookPoint.AFTER_EXECUTE)
             self.__end_exe = True
-        computed_indices = self._hydra_hook.computed_indices
-        assert computed_indices is not None
-        return {
-            idx: self._hydra_hook.contributions[idx].item() for idx in computed_indices
-        }
+        return self._hydra_hook.contribution_dict

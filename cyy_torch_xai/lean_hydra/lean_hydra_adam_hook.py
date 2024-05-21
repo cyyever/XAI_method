@@ -47,7 +47,7 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         eps = optimizer.param_groups[0]["eps"]
 
         self.__gradient_product = optional_multiplication(
-            self._contributions, weight_decay
+            self._contribution_tensor, weight_decay
         )
         for idx, dot_product in self._sample_gradient_hook.result_dict.items():
             self.__gradient_product[idx] += (
@@ -66,8 +66,8 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         ) / (1 - (beta2**step))
         corrected_second_average_sqrt = corrected_second_average.sqrt().mean().item()
 
-        self._contributions = optional_subtraction(
-            self._contributions,
+        self._contribution_tensor = optional_subtraction(
+            self._contribution_tensor,
             optional_multiplication(
                 optional_addition(
                     optional_multiplication(

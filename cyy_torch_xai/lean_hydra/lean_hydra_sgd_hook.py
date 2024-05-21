@@ -23,7 +23,7 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
         weight_decay = optimizer.param_groups[0]["weight_decay"]
         self.__mom_product = optional_addition(
             optional_multiplication(self.__mom_product, momentum),
-            optional_multiplication(self.contributions, weight_decay),
+            optional_multiplication(self.contribution_tensor, weight_decay),
         )
 
         assert self.__mom_product is not None
@@ -31,13 +31,13 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
         for idx, dot_product in self._sample_gradient_hook.result_dict.items():
             self.__mom_product[idx] += dot_product * self.training_set_size / batch_size
         self._sample_gradient_hook.reset_result()
-        assert id(self._contributions) != id(self.__mom_product)
-        self._contributions -= lr * self.__mom_product
+        assert id(self._contribution_tensor) != id(self.__mom_product)
+        self._contribution_tensor -= lr * self.__mom_product
         get_logger().debug(
             "batch use time %s ms",
             counter.elapsed_milliseconds(),
         )
 
     def _after_execute(self, **kwargs: Any) -> None:
-        self._contributions = -self.contributions / self.training_set_size
+        self._contribution_tensor = -self.contribution_tensor / self.training_set_size
         super()._after_execute(**kwargs)

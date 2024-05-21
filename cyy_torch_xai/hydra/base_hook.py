@@ -22,7 +22,6 @@ class BaseHook(SampleGradientXAIHook):
     def use_hessian(self) -> bool:
         return self._use_hessian
 
-
     def _after_execute(self, **kwargs: Any) -> None:
         if self._batch_hvp_hook is not None:
             self._batch_hvp_hook.release()
