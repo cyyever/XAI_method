@@ -133,7 +133,7 @@ def stochastic_inverse_hessian_vector_product(
                 break
             epoch += 1
         del cur_products
-        hook.release_queue()
+        hook.release()
         assert results is not None
         return results
 

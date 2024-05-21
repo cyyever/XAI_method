@@ -51,7 +51,7 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         )
         for idx, dot_product in self._sample_gradient_hook.result_dict.items():
             self.__gradient_product[idx] += (
-                dot_product * self._training_set_size / batch_size
+                dot_product * self.training_set_size / batch_size
             )
         self._sample_gradient_hook.reset_result()
 

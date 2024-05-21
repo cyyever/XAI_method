@@ -32,6 +32,7 @@ class TracInBaseHook(SampleGradientXAIHook):
         return self._influence_values
 
     def _before_execute(self, **kwargs: Any) -> None:
+        super()._before_execute(**kwargs)
         self._influence_values = {}
 
     def __compute_test_sample_gradients(self, executor, **kwargs: Any) -> None:

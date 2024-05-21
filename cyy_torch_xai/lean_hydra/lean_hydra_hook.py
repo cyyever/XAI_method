@@ -23,6 +23,10 @@ class LeanHyDRAHook(BaseHook):
         assert self._contributions is not None
         return self._contributions
 
+    @property
+    def contribution_dict(self) -> SampleContributions:
+        return {idx: self.contributions[idx].item() for idx in self.computed_indices}
+
     def _before_execute(self, **kwargs: Any) -> None:
         super()._before_execute(**kwargs)
         self._contributions = torch.zeros(self.training_set_size)
