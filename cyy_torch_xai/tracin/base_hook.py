@@ -3,21 +3,20 @@ from typing import Any
 import torch
 from cyy_torch_algorithm.computation.sample_gradient.sample_gradient_hook import \
     get_sample_gradients
-from cyy_torch_toolbox import IterationUnit, MachineLearningPhase
-from cyy_torch_toolbox.hook import Hook
-from cyy_torch_toolbox.typing import OptionalIndicesType, SampleGradients
+from cyy_torch_toolbox import (IterationUnit, MachineLearningPhase,
+                               OptionalIndicesType, SampleGradients)
 
+from ..base_hook import SampleGradientXAIHook
 from ..typing import SampleContributions
 
 
-class TracInBaseHook(Hook):
+class TracInBaseHook(SampleGradientXAIHook):
     def __init__(
         self,
         test_sample_indices: OptionalIndicesType = None,
         check_point_gap: tuple[int, IterationUnit] | None = None,
     ) -> None:
-        super().__init__(stripable=True)
-
+        super().__init__()
         self.__check_point_gap = check_point_gap
         self.__test_sample_indices: OptionalIndicesType = test_sample_indices
         self.__test_gradients: SampleGradients = {}

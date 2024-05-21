@@ -28,11 +28,6 @@ class BaseHook(SampleBaseHook):
     def use_hessian(self) -> bool:
         return self._use_hessian
 
-    def _get_optimizer(self, **kwargs) -> torch.optim.Optimizer:
-        if "executor" in kwargs:
-            trainer = kwargs["executor"]
-            return trainer.get_optimizer()
-        return kwargs["optimizer"]
 
     # def _get_model_util(self, **kwargs: Any) -> ModelUtil:
     #     if "executor" in kwargs:

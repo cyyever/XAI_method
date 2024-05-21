@@ -1,10 +1,12 @@
 from typing import Any
 
+import torch
 from cyy_naive_lib.log import get_logger
+from cyy_torch_algorithm.computation import SampleGradientHook
 from cyy_torch_toolbox import Hook, IndicesType, Trainer
 
 
-class SampleBaseHook(Hook):
+class SampleXAIHook(Hook):
     def __init__(self) -> None:
         super().__init__(stripable=True)
         self.__computed_indices: set[int] | None = None
@@ -36,3 +38,22 @@ class SampleBaseHook(Hook):
             self.set_computed_indices(range(self.training_set_size))
         else:
             get_logger().info("only compute %s indices", len(self.computed_indices))
+
+
+class SampleGradientXAIHook(SampleXAIHook):
+    def __init__(self) -> None:
+        super().__init__()
+        self._sample_gradient_hook: SampleGradientHook = SampleGradientHook()
+
+    def set_computed_indices(self, computed_indices: IndicesType) -> None:
+        super().set_computed_indices(computed_indices=computed_indices)
+        self._sample_gradient_hook.set_computed_indices(self.computed_indices)
+
+    def _get_optimizer(self, **kwargs) -> torch.optim.Optimizer:
+        if "executor" in kwargs:
+            trainer = kwargs["executor"]
+            return trainer.get_optimizer()
+        return kwargs["optimizer"]
+
+    def _after_execute(self, **kwargs: Any) -> None:
+        self._sample_gradient_hook.release()
