@@ -30,8 +30,8 @@ class TracInHook(TracInBaseHook):
             raise RuntimeError("optimizer is not SGD")
         lr = optimizer.param_groups[0]["lr"]
 
-        assert self.test_grad_dict
-        for k, test_grad in self.test_grad_dict.items():
+        assert self.test_gradients
+        for k, test_grad in self.test_gradients.items():
             if k not in self._influence_values:
                 self._influence_values[k] = {}
             for k2, sample_grad in self._sample_grad_hook.result_dict.items():

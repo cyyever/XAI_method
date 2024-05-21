@@ -20,13 +20,13 @@ class TracInBaseHook(Hook):
 
         self.__check_point_gap = check_point_gap
         self.__test_sample_indices: OptionalIndicesType = test_sample_indices
-        self.__test_grad_dict: SampleGradients = {}
+        self.__test_gradients: SampleGradients = {}
         self._influence_values: dict[int, SampleContributions] = {}
         self.__batch_num: int = 0
 
     @property
-    def test_grad_dict(self) -> SampleGradients:
-        return self.__test_grad_dict
+    def test_gradients(self) -> SampleGradients:
+        return self.__test_gradients
 
     @property
     def influence_values(self) -> dict[int, SampleContributions]:
@@ -49,9 +49,9 @@ class TracInBaseHook(Hook):
                     raise RuntimeError(unit)
         inferencer = executor.get_inferencer(phase=MachineLearningPhase.Test)
         if self.__test_sample_indices is None:
-            self.__test_grad_dict[-1] = inferencer.get_gradient()
+            self.__test_gradients[-1] = inferencer.get_gradient()
         else:
-            self.__test_grad_dict.update(
+            self.__test_gradients.update(
                 get_sample_gradients(
                     inferencer=inferencer,
                     computed_indices=self.__test_sample_indices,
