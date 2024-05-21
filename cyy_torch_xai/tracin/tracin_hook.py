@@ -9,8 +9,6 @@ from .base_hook import TracInBaseHook
 
 
 class TracInHook(TracInBaseHook):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
 
     def _after_batch(self, batch_size: int, **kwargs) -> None:
         optimizer = self._get_optimizer(**kwargs)
