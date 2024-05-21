@@ -1,8 +1,11 @@
 import importlib
+import os
 
-from cyy_torch_toolbox import (IterationUnit)
+from cyy_torch_toolbox import IterationUnit
 from cyy_torch_toolbox.config import Config
 from cyy_torch_xai.tracin import TracInHook
+
+os.environ["USE_THREAD_DATALOADER"] = "1"
 
 has_cyy_torch_vision: bool = importlib.util.find_spec("cyy_torch_vision") is not None
 
