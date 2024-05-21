@@ -36,18 +36,19 @@ class TracInBaseHook(SampleGradientXAIHook):
         self._influence_values = {}
 
     def __compute_test_sample_gradients(self, executor, **kwargs: Any) -> None:
-        if self.__check_point_gap is not None:
-            gap, unit = self.__check_point_gap
-            match unit:
-                case IterationUnit.Batch:
-                    if self.__batch_num != 0 and self.__batch_num % gap != 0:
-                        return
-                case IterationUnit.Epoch:
-                    epoch = kwargs["epoch"]
-                    if epoch != 0 and epoch % gap != 0:
-                        return
-                case _:
-                    raise RuntimeError(unit)
+        if self.__test_gradients:
+            if self.__check_point_gap is not None:
+                gap, unit = self.__check_point_gap
+                match unit:
+                    case IterationUnit.Batch:
+                        if self.__batch_num % gap != 0:
+                            return
+                    case IterationUnit.Epoch:
+                        epoch = kwargs["epoch"]
+                        if epoch % gap != 0:
+                            return
+                    case _:
+                        raise RuntimeError(unit)
         inferencer = executor.get_inferencer(phase=MachineLearningPhase.Test)
         if self.__test_sample_indices is None:
             self.__test_gradients[-1] = inferencer.get_gradient()
