@@ -36,6 +36,7 @@ class TracInHook(TracInBaseHook):
         if -1 in self._influence_values:
             assert len(self._influence_values) == 1
             influence_values = self._influence_values[-1]
+        os.makedirs(executor.save_dir, exist_ok=True)
         with open(
             os.path.join(
                 executor.save_dir,

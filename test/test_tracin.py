@@ -1,5 +1,6 @@
 import importlib
 
+from cyy_torch_toolbox import (IterationUnit)
 from cyy_torch_toolbox.config import Config
 from cyy_torch_xai.tracin import TracInHook
 
@@ -17,5 +18,7 @@ def test_tracin() -> None:
     config.hyper_parameter_config.optimizer_name = "SGD"
     config.hyper_parameter_config.learning_rate = 0.01
     trainer = config.create_trainer()
-    trainer.append_hook(TracInHook())
+    hook = TracInHook(check_point_gap=[300, IterationUnit.Batch])
+    hook.set_computed_indices([1, 2])
+    trainer.append_hook(hook)
     trainer.train()
