@@ -5,12 +5,15 @@ from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation import SampleGradientHook
 from cyy_torch_toolbox import Hook, IndicesType, ModelUtil, Trainer
 
+from .contribution import SubsetContribution
+
 
 class SampleXAIHook(Hook):
     def __init__(self) -> None:
         super().__init__(stripable=True)
         self.__computed_indices: set[int] | None = None
         self.__training_set_size: int | None = None
+        self._contribution: SubsetContribution = SubsetContribution()
 
     @property
     def computed_indices(self) -> set[int]:
@@ -20,6 +23,7 @@ class SampleXAIHook(Hook):
     def set_computed_indices(self, computed_indices: IndicesType) -> None:
         assert computed_indices
         self.__computed_indices = set(computed_indices)
+        self._contribution.set_tracked_indices(computed_indices)
 
     @property
     def training_set_size(self) -> int:
@@ -38,6 +42,7 @@ class SampleXAIHook(Hook):
             self.set_computed_indices(range(self.training_set_size))
         else:
             get_logger().info("only compute %s indices", len(self.computed_indices))
+        self._contribution.clear_contributions()
 
 
 class SampleGradientXAIHook(SampleXAIHook):

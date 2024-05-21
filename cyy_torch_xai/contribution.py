@@ -49,10 +49,8 @@ class SubsetContribution:
         assert tracked_subsets
         self.__tracked_subsets = tracked_subsets
 
-    def set_tracked_training_indices(
-        self, tracked_training_indices: IndicesType
-    ) -> None:
-        self.set_tracked_subsets({frozenset({idx}) for idx in tracked_training_indices})
+    def set_tracked_indices(self, tracked_indices: IndicesType) -> None:
+        self.set_tracked_subsets({frozenset({idx}) for idx in tracked_indices})
 
     @property
     def tracked_subsets(self) -> set[SubsetIndices]:
@@ -60,7 +58,7 @@ class SubsetContribution:
         return self.__tracked_subsets
 
     @property
-    def tracked_training_indices(self) -> set[int]:
+    def tracked_indices(self) -> set[int]:
         indices = set()
         for subset in self.tracked_subsets:
             t = tuple(subset)
@@ -69,8 +67,19 @@ class SubsetContribution:
         return indices
 
     def dump(self, file) -> None:
-        data = self.__values
-        if None in self.__values and len(self.__values) == 1:
-            data = self.__values[None]
+        def transform_key(indices: SubsetIndices | None) -> int | str:
+            if indices is None:
+                return "None"
+            if len(indices) != 1:
+                return str(indices)
+            return list(indices)[0]
+
+        data = {
+            transform_key(k): {transform_key(k2): v2 for k2, v2 in v.items()}
+            for k, v in self.__values.items()
+        }
+        if len(data) == 1:
+            data = next(iter(data.values()))
         assert data
+
         json.dump(data, file)

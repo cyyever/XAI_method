@@ -18,11 +18,7 @@ class TracInHook(TracInBaseHook):
 
         assert self.test_gradients
         for k, test_grad in self.test_gradients.items():
-            if k not in self._influence_values:
-                self._influence_values[k] = {}
             for k2, sample_grad in self._sample_gradient_hook.result_dict.items():
-                if k2 not in self._influence_values[k]:
-                    self._influence_values[k][k2] = 0
                 value = self._contribution.get_sample_contribution(
                     tracked_index=k2, test_index=k
                 )
