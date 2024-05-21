@@ -38,15 +38,12 @@ def optional_subtraction(a: OptionalTensor, b: OptionalTensor) -> OptionalTensor
     return a - b
 
 
-def optional_multiplication(*args: OptionalTensor) -> OptionalTensor:
-    res = None
-    for a in args:
-        if a is None:
-            return None
-        if res is None:
-            res = a
-        else:
-            res = res * a
+def optional_multiplication(a: OptionalTensor, *args: float) -> OptionalTensor:
+    if a is None:
+        return None
+    res = a
+    for arg in args:
+        res = res * arg
     return res
 
 
