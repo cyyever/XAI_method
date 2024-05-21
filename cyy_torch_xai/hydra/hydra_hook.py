@@ -18,7 +18,7 @@ from .base_hook import BaseHook
 
 
 class HyDRAHook(BaseHook):
-    def __init__(self, cache_size, **kwargs) -> None:
+    def __init__(self, cache_size: int, **kwargs) -> None:
         super().__init__(use_hessian=kwargs.get("use_hessian", False))
         self._cache_size: int = cache_size
         self._trainer: None | Trainer = None
@@ -157,12 +157,14 @@ class HyDRAHook(BaseHook):
                     batch_gradient_indices
                 )
 
-    def _set_hyper_gradient_tensors(self, index, use_approximation, *tensors) -> None:
+    def _set_hyper_gradient_tensors(
+        self, index: int, use_approximation: bool, *tensors: torch.Tensor
+    ) -> None:
         if self.__hyper_parameter_size is None:
             self.__hyper_parameter_size = tensors[0].shape[0]
         self._get_hyper_gradient_dict(use_approximation)[index] = torch.cat(tensors)
 
-    def _decode_hyper_gradient_tensors(self, tensor) -> tuple:
+    def _decode_hyper_gradient_tensors(self, tensor: torch.Tensor) -> tuple:
         assert self.__hyper_parameter_size is not None
         return torch.split(tensor, self.__hyper_parameter_size)
 
