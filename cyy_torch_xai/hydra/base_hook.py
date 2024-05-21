@@ -22,11 +22,6 @@ class BaseHook(SampleGradientXAIHook):
     def use_hessian(self) -> bool:
         return self._use_hessian
 
-    # def _get_model_util(self, **kwargs: Any) -> ModelUtil:
-    #     if "executor" in kwargs:
-    #         trainer = kwargs["executor"]
-    #         return trainer.model_util
-    #     return kwargs["model_evaluator"].model_util
 
     def _after_execute(self, **kwargs: Any) -> None:
         if self._batch_hvp_hook is not None:

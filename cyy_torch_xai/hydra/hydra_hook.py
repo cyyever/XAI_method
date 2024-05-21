@@ -140,13 +140,12 @@ class HyDRAHook(BaseHook):
         cls,
         cache_size,
         storage_dir,
-    ):
-        tensor_dict = SyncedTensorDict.create(
+    ) -> SyncedTensorDict:
+        return SyncedTensorDict.create(
             key_type=int,
             cache_size=cache_size,
             storage_dir=storage_dir,
         )
-        return tensor_dict
 
     def __prepare_hook(self, sample_indices: list[torch.Tensor], **kwargs: Any) -> None:
         if self.use_approximation:

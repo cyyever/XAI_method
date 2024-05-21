@@ -3,7 +3,7 @@ from typing import Any
 import torch
 from cyy_naive_lib.log import get_logger
 from cyy_torch_algorithm.computation import SampleGradientHook
-from cyy_torch_toolbox import Hook, IndicesType, Trainer
+from cyy_torch_toolbox import Hook, IndicesType, ModelUtil, Trainer
 
 
 class SampleXAIHook(Hook):
@@ -54,6 +54,12 @@ class SampleGradientXAIHook(SampleXAIHook):
             trainer = kwargs["executor"]
             return trainer.get_optimizer()
         return kwargs["optimizer"]
+
+    def _get_model_util(self, **kwargs: Any) -> ModelUtil:
+        if "executor" in kwargs:
+            trainer = kwargs["executor"]
+            return trainer.model_util
+        return kwargs["model_evaluator"].model_util
 
     def _after_execute(self, **kwargs: Any) -> None:
         self._sample_gradient_hook.release()
