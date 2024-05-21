@@ -1,7 +1,7 @@
 from typing import Any
 
 import torch
-from cyy_torch_toolbox import Executor, OptionalTensor, cat_tensor_dict
+from cyy_torch_toolbox import OptionalTensor, cat_tensor_dict
 
 from ..arithmetic_util import optional_addition, optional_multiplication
 from .hydra_hook import HyDRAHook
@@ -12,16 +12,16 @@ class HyDRASGDHook(HyDRAHook):
     __lr: float | None = None
     __weight_decay: float | None = None
 
-    def _before_batch(self, executor: Executor, **kwargs: Any) -> None:
-        optimizer = executor.get_optimizer()
+    def _before_batch(self, **kwargs: Any) -> None:
+        super()._before_batch(**kwargs)
+        optimizer = self._get_optimizer(**kwargs)
         assert len(optimizer.param_groups) == 1
 
         self.__momentum = optimizer.param_groups[0]["momentum"]
         self.__lr = optimizer.param_groups[0]["lr"]
         self.__weight_decay = optimizer.param_groups[0]["weight_decay"]
-        super()._before_batch(executor=executor, **kwargs)
 
-    def _after_batch(self, executor: Executor, batch_size: int, **kwargs: Any) -> None:
+    def _after_batch(self, batch_size: int, **kwargs: Any) -> None:
         for idx in self.computed_indices:
             instance_gradient = self.sample_gradient_dict.get(idx, None)
             if instance_gradient is not None:

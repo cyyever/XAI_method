@@ -23,7 +23,7 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
         weight_decay = optimizer.param_groups[0]["weight_decay"]
         self.__mom_product = optional_addition(
             optional_multiplication(self.__mom_product, momentum),
-            optional_multiplication(self._contributions, weight_decay),
+            optional_multiplication(self.contributions, weight_decay),
         )
 
         assert self.__mom_product is not None
