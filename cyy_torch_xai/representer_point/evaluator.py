@@ -25,9 +25,9 @@ class OutputFeatureModelEvaluator(ModelEvaluatorWrapper):
     def __init__(self, evaluator: ModelEvaluator) -> None:
         super().__init__(evaluator=evaluator)
         self.__output_features: SampleTensors = {}
-        last_module = self.evaluator.model_util.get_last_underlying_module()
-        assert isinstance(last_module, torch.nn.Linear)
-        last_module.register_forward_pre_hook(
+        self.last_module = self.evaluator.model_util.get_last_underlying_module()
+        assert isinstance(self.last_module, torch.nn.Linear)
+        self.last_module.register_forward_pre_hook(
             hook=self.__feature_hook_impl, with_kwargs=True
         )
 
@@ -41,6 +41,9 @@ class OutputFeatureModelEvaluator(ModelEvaluatorWrapper):
         self.__output_features |= dict(zip(self._sample_indices, input_tensor.clone()))
         return None
 
+class OutputGradientEvaluator(OutputFeatureModelEvaluator):
+    def __init__(self, evaluator: ModelEvaluator) -> None:
+        super().__init__(evaluator=evaluator)
 
 class OutputModelEvaluator(OutputFeatureModelEvaluator):
     def __init__(self, evaluator: ModelEvaluator) -> None:

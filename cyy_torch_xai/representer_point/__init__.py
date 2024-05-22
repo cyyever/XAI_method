@@ -5,27 +5,28 @@ from cyy_torch_toolbox import (IndicesType, MachineLearningPhase,
                                OptionalIndicesType, Trainer)
 
 from cyy_torch_toolbox.tensor import dot_product
-from .evaluator import OutputFeatureModelEvaluator, OutputModelEvaluator
+from .evaluator import OutputFeatureModelEvaluator, OutputModelEvaluator, OutputGradientEvaluator
 from ..contribution import SubsetContribution
 
 
-def __get_output_features(
+def __get_output(
     trainer: Trainer, phase: MachineLearningPhase, sample_indices: OptionalIndicesType
 ) -> dict[str, dict[int, torch.Tensor]]:
     inferencer = trainer.get_inferencer(phase=phase, deepcopy_model=True)
-    if phase == MachineLearningPhase.Training:
-        inferencer.replace_model_evaluator(
-            lambda model_evaluator: OutputFeatureModelEvaluator(evaluator=model_evaluator)
-        )
-    else:
-        inferencer.replace_model_evaluator(
-            lambda model_evaluator: OutputModelEvaluator(evaluator=model_evaluator)
-        )
     if sample_indices is not None:
         inferencer.mutable_dataset_collection.set_subset(
             phase=phase, indices=set(sample_indices)
         )
-    inferencer.inference()
+    if phase == MachineLearningPhase.Training:
+        inferencer.replace_model_evaluator(
+            lambda model_evaluator: OutputGradientEvaluator(evaluator=model_evaluator)
+        )
+        inferencer.get_gradient()
+    else:
+        inferencer.replace_model_evaluator(
+            lambda model_evaluator: OutputModelEvaluator(evaluator=model_evaluator)
+        )
+        inferencer.inference()
     assert isinstance(inferencer.model_evaluator, OutputFeatureModelEvaluator)
     if sample_indices is not None:
         assert len(inferencer.model_evaluator.output_features) == len(
@@ -42,7 +43,7 @@ def compute_representer_point_values(
     test_indices: IndicesType,
     training_indices: OptionalIndicesType = None,
 ) -> SubsetContribution:
-    test_res = __get_output_features(
+    test_res = __get_output(
         trainer=trainer,
         phase=MachineLearningPhase.Test,
         sample_indices=test_indices,
@@ -50,7 +51,7 @@ def compute_representer_point_values(
     test_features = test_res["output_features"]
     test_output_tensors = test_res["output_tensors"]
 
-    training_res = __get_output_features(
+    training_res = __get_output(
         trainer=trainer,
         phase=MachineLearningPhase.Training,
         sample_indices=training_indices,
