@@ -1,16 +1,16 @@
-import copy
+import torch
 
 from cyy_naive_lib.log import log_error
-from cyy_torch_toolbox import (IndicesType, Inferencer, MachineLearningPhase,
+from cyy_torch_toolbox import (IndicesType, MachineLearningPhase,
                                OptionalIndicesType, Trainer)
 
-from ..typing import SampleContributions
 from .evaluator import OutputFeatureModelEvaluator
+from ..contribution import SubsetContribution
 
 
-def __get_inferencer(
+def __get_output_features(
     trainer: Trainer, phase: MachineLearningPhase, sample_indices: OptionalIndicesType
-) -> Inferencer:
+) -> dict[int, torch.Tensor]:
     inferencer = trainer.get_inferencer(phase=phase, deepcopy_model=True)
     inferencer.replace_model_evaluator(
         lambda model_evaluator: OutputFeatureModelEvaluator(evaluator=model_evaluator)
@@ -19,39 +19,33 @@ def __get_inferencer(
         inferencer.mutable_dataset_collection.set_subset(
             phase=phase, indices=set(sample_indices)
         )
-    return inferencer
+    inferencer.inference()
+    assert isinstance(inferencer.model_evaluator, OutputFeatureModelEvaluator)
+    if sample_indices is not None:
+        assert len(inferencer.model_evaluator.output_features) == len(
+            set(sample_indices)
+        )
+    return inferencer.model_evaluator.output_features
 
 
 def compute_representer_point_values(
     trainer: Trainer,
     test_indices: IndicesType,
     training_indices: OptionalIndicesType = None,
-) -> list[SampleContributions]:
-    inferencer = __get_inferencer(
+) -> SubsetContribution:
+    test_features = __get_output_features(
         trainer=trainer,
         phase=MachineLearningPhase.Test,
         sample_indices=test_indices,
     )
-    inferencer.inference()
-    assert isinstance(inferencer.model_evaluator, OutputFeatureModelEvaluator)
-    assert len(inferencer.model_evaluator.output_features) == len(
-        set(test_indices)
-    )
 
-    inferencer = __get_inferencer(
+    training_features = __get_output_features(
         trainer=trainer,
         phase=MachineLearningPhase.Training,
         sample_indices=training_indices,
     )
-    inferencer.inference()
-    assert isinstance(inferencer.model_evaluator, OutputFeatureModelEvaluator)
-    assert training_indices is None or len(
-        inferencer.model_evaluator.output_features
-    ) == len(set(training_indices))
-
-    # training_inferencer = trainer.get_inferencer(
-    #     phase=MachineLearningPhase.Training, deepcopy_model=True
-    # )
-    log_error("aaa %s", len(inferencer.model_evaluator.output_features))
-    log_error("bbbb %s", len(set(test_indices)))
-    return []
+    log_error("aaa %s", len(test_features))
+    log_error("vvv %s", len(training_features))
+    contribution = SubsetContribution()
+    contribution.set_tracked_indices(list(training_features.keys()))
+    return contribution
