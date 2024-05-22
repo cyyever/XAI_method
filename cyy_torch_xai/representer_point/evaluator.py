@@ -41,9 +41,33 @@ class OutputFeatureModelEvaluator(ModelEvaluatorWrapper):
         self.__output_features |= dict(zip(self._sample_indices, input_tensor.clone()))
         return None
 
+
 class OutputGradientEvaluator(OutputFeatureModelEvaluator):
     def __init__(self, evaluator: ModelEvaluator) -> None:
         super().__init__(evaluator=evaluator)
+        self.last_module.register_forward_hook(
+            hook=self.__output_hook_impl, with_kwargs=True
+        )
+        self.__accumulated_sample_indices = []
+        self.__layer_output_tensors = []
+
+    @property
+    def layer_output_gradients(self) -> SampleTensors:
+        res = {}
+        for a, b in zip(self.__accumulated_sample_indices, self.__layer_output_tensors):
+            assert len(a) == b.grad.shape[0]
+            res |= dict(zip(a, b.grad))
+        return res
+
+    def __output_hook_impl(self, module, *args, **kwargs) -> Any:
+        output_tensor: torch.Tensor = args[0][0]
+        assert output_tensor.shape[0] == len(self._sample_indices)
+        assert output_tensor.grad is None
+        output_tensor.retain_grad()
+        self.__accumulated_sample_indices.append(self._sample_indices)
+        self.__layer_output_tensors.append(output_tensor)
+        return None
+
 
 class OutputModelEvaluator(OutputFeatureModelEvaluator):
     def __init__(self, evaluator: ModelEvaluator) -> None:

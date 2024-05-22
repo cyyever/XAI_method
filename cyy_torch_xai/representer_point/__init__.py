@@ -2,7 +2,7 @@ import torch
 
 from cyy_naive_lib.log import log_error
 from cyy_torch_toolbox import (IndicesType, MachineLearningPhase,
-                               OptionalIndicesType, Trainer)
+                               OptionalIndicesType, Trainer, EvaluationMode)
 
 from cyy_torch_toolbox.tensor import dot_product
 from .evaluator import OutputFeatureModelEvaluator, OutputModelEvaluator, OutputGradientEvaluator
@@ -17,11 +17,18 @@ def __get_output(
         inferencer.mutable_dataset_collection.set_subset(
             phase=phase, indices=set(sample_indices)
         )
+    res: dict = {}
     if phase == MachineLearningPhase.Training:
         inferencer.replace_model_evaluator(
             lambda model_evaluator: OutputGradientEvaluator(evaluator=model_evaluator)
         )
-        inferencer.get_gradient()
+        sample_loss = inferencer.get_sample_loss(evaluation_mode=EvaluationMode.Test)
+        assert sample_loss
+        for v in sample_loss.values():
+            v.backward(retain_graph=True)
+        assert isinstance(inferencer.model_evaluator, OutputGradientEvaluator)
+        res |= {"layer_gradients": inferencer.model_evaluator.layer_output_gradients}
+
     else:
         inferencer.replace_model_evaluator(
             lambda model_evaluator: OutputModelEvaluator(evaluator=model_evaluator)
@@ -32,7 +39,7 @@ def __get_output(
         assert len(inferencer.model_evaluator.output_features) == len(
             set(sample_indices)
         )
-    res = {"output_features": inferencer.model_evaluator.output_features}
+    res |= {"output_features": inferencer.model_evaluator.output_features}
     if hasattr(inferencer.model_evaluator, "output_tensors"):
         res |= {"output_tensors": inferencer.model_evaluator.output_tensors}
     return res
@@ -57,7 +64,6 @@ def compute_representer_point_values(
         sample_indices=training_indices,
     )
     training_features = training_res["output_features"]
-    log_error("aaa %s", len(test_features))
     log_error("aaa %s", len(test_output_tensors))
     log_error("vvv %s", len(training_features))
     contribution = SubsetContribution()
