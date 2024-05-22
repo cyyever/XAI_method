@@ -4,17 +4,23 @@ from cyy_naive_lib.log import log_error
 from cyy_torch_toolbox import (IndicesType, MachineLearningPhase,
                                OptionalIndicesType, Trainer)
 
-from .evaluator import OutputFeatureModelEvaluator
+from cyy_torch_toolbox.tensor import dot_product
+from .evaluator import OutputFeatureModelEvaluator, OutputModelEvaluator
 from ..contribution import SubsetContribution
 
 
 def __get_output_features(
     trainer: Trainer, phase: MachineLearningPhase, sample_indices: OptionalIndicesType
-) -> dict[int, torch.Tensor]:
+) -> dict[str, dict[int, torch.Tensor]]:
     inferencer = trainer.get_inferencer(phase=phase, deepcopy_model=True)
-    inferencer.replace_model_evaluator(
-        lambda model_evaluator: OutputFeatureModelEvaluator(evaluator=model_evaluator)
-    )
+    if phase == MachineLearningPhase.Training:
+        inferencer.replace_model_evaluator(
+            lambda model_evaluator: OutputFeatureModelEvaluator(evaluator=model_evaluator)
+        )
+    else:
+        inferencer.replace_model_evaluator(
+            lambda model_evaluator: OutputModelEvaluator(evaluator=model_evaluator)
+        )
     if sample_indices is not None:
         inferencer.mutable_dataset_collection.set_subset(
             phase=phase, indices=set(sample_indices)
@@ -25,7 +31,10 @@ def __get_output_features(
         assert len(inferencer.model_evaluator.output_features) == len(
             set(sample_indices)
         )
-    return inferencer.model_evaluator.output_features
+    res = {"output_features": inferencer.model_evaluator.output_features}
+    if hasattr(inferencer.model_evaluator, "output_tensors"):
+        res |= {"output_tensors": inferencer.model_evaluator.output_tensors}
+    return res
 
 
 def compute_representer_point_values(
@@ -33,19 +42,27 @@ def compute_representer_point_values(
     test_indices: IndicesType,
     training_indices: OptionalIndicesType = None,
 ) -> SubsetContribution:
-    test_features = __get_output_features(
+    test_res = __get_output_features(
         trainer=trainer,
         phase=MachineLearningPhase.Test,
         sample_indices=test_indices,
     )
+    test_features = test_res["output_features"]
+    test_output_tensors = test_res["output_tensors"]
 
-    training_features = __get_output_features(
+    training_res = __get_output_features(
         trainer=trainer,
         phase=MachineLearningPhase.Training,
         sample_indices=training_indices,
     )
+    training_features = training_res["output_features"]
     log_error("aaa %s", len(test_features))
+    log_error("aaa %s", len(test_output_tensors))
     log_error("vvv %s", len(training_features))
     contribution = SubsetContribution()
     contribution.set_tracked_indices(list(training_features.keys()))
+    for test_idx, test_feature in test_features.items():
+        for training_idx, training_feature in training_features.items():
+            product = dot_product(test_feature, training_feature)
+            contribution.set_sample_contribution(tracked_index=training_idx, value=product, test_index=test_idx)
     return contribution
