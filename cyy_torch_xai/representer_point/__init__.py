@@ -11,15 +11,15 @@ from .evaluator import OutputFeatureModelEvaluator
 def __get_inferencer(
     trainer: Trainer, phase: MachineLearningPhase, sample_indices: OptionalIndicesType
 ) -> Inferencer:
-    test_inferencer = trainer.get_inferencer(phase=phase, deepcopy_model=True)
-    test_inferencer.replace_model_evaluator(
+    inferencer = trainer.get_inferencer(phase=phase, deepcopy_model=True)
+    inferencer.replace_model_evaluator(
         lambda model_evaluator: OutputFeatureModelEvaluator(evaluator=model_evaluator)
     )
     if sample_indices is not None:
-        test_inferencer.mutable_dataset_collection.set_subset(
+        inferencer.mutable_dataset_collection.set_subset(
             phase=phase, indices=set(sample_indices)
         )
-    return test_inferencer
+    return inferencer
 
 
 def compute_representer_point_values(
@@ -27,32 +27,31 @@ def compute_representer_point_values(
     test_indices: IndicesType,
     training_indices: OptionalIndicesType = None,
 ) -> list[SampleContributions]:
-    trainer = copy.deepcopy(trainer)
-    test_inferencer = __get_inferencer(
+    inferencer = __get_inferencer(
         trainer=trainer,
         phase=MachineLearningPhase.Test,
         sample_indices=test_indices,
     )
-    test_inferencer.inference()
-    assert isinstance(test_inferencer.model_evaluator, OutputFeatureModelEvaluator)
-    assert len(test_inferencer.model_evaluator.output_features) == len(
+    inferencer.inference()
+    assert isinstance(inferencer.model_evaluator, OutputFeatureModelEvaluator)
+    assert len(inferencer.model_evaluator.output_features) == len(
         set(test_indices)
     )
 
-    test_inferencer = __get_inferencer(
+    inferencer = __get_inferencer(
         trainer=trainer,
         phase=MachineLearningPhase.Training,
         sample_indices=training_indices,
     )
-    test_inferencer.inference()
-    assert isinstance(test_inferencer.model_evaluator, OutputFeatureModelEvaluator)
+    inferencer.inference()
+    assert isinstance(inferencer.model_evaluator, OutputFeatureModelEvaluator)
     assert training_indices is None or len(
-        test_inferencer.model_evaluator.output_features
+        inferencer.model_evaluator.output_features
     ) == len(set(training_indices))
 
     # training_inferencer = trainer.get_inferencer(
     #     phase=MachineLearningPhase.Training, deepcopy_model=True
     # )
-    log_error("aaa %s", len(test_inferencer.model_evaluator.output_features))
+    log_error("aaa %s", len(inferencer.model_evaluator.output_features))
     log_error("bbbb %s", len(set(test_indices)))
     return []
