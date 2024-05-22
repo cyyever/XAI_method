@@ -11,18 +11,17 @@ from .contribution import SubsetContribution
 class SampleXAIHook(Hook):
     def __init__(self) -> None:
         super().__init__(stripable=True)
-        self.__computed_indices: set[int] | None = None
+        self.__has_tracked_samples: bool = False
         self.__training_set_size: int | None = None
         self._contribution: SubsetContribution = SubsetContribution()
 
     @property
     def computed_indices(self) -> set[int]:
-        assert self.__computed_indices is not None
-        return self.__computed_indices
+        return self._contribution.tracked_indices
 
     def set_computed_indices(self, computed_indices: IndicesType) -> None:
         assert computed_indices
-        self.__computed_indices = set(computed_indices)
+        self.__has_tracked_samples = True
         self._contribution.set_tracked_indices(computed_indices)
 
     @property
@@ -38,7 +37,7 @@ class SampleXAIHook(Hook):
         else:
             self.__training_set_size = kwargs["training_set_size"]
 
-        if self.__computed_indices is None:
+        if not self.__has_tracked_samples:
             self.set_computed_indices(range(self.training_set_size))
         else:
             get_logger().info("only compute %s indices", len(self.computed_indices))
