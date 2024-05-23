@@ -20,6 +20,10 @@ class LeanHyDRAHook(BaseHook):
         self._contribution_tensor: OptionalTensor = None
 
     @property
+    def test_gradient(self):
+        return self.__test_gradient
+
+    @property
     def contribution_tensor(self) -> torch.Tensor:
         assert self._contribution_tensor is not None
         return self._contribution_tensor
@@ -35,7 +39,7 @@ class LeanHyDRAHook(BaseHook):
         self._contribution_tensor = torch.zeros(self.training_set_size)
 
     def _dot_product(self, result, **kwargs: Any) -> float:
-        return dot_product(self.__test_gradient, result)
+        return dot_product(self.test_gradient, result)
 
     def _after_execute(self, **kwargs: Any) -> None:
         assert self.contribution_tensor.shape[0] == self.training_set_size

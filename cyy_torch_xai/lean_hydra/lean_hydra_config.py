@@ -22,14 +22,10 @@ class LeanHyDRAConfig(DeterministicTrainingConfig):
         return hydra_hook
 
     def recreate_trainer_and_hook(self, test_gradient: None | ModelGradient = None) -> dict:
-        assert self.deterministic_training.last_trainer is not None
         if test_gradient is None:
             tester = self.deterministic_training.last_trainer.get_inferencer(
                 phase=MachineLearningPhase.Test, deepcopy_model=False
             )
             test_gradient = tester.get_gradient()
             del tester
-        hydra_hook = self._create_hook(test_gradient=test_gradient)
-        trainer = self.deterministic_training.recreate_trainer()
-        trainer.append_hook(hydra_hook)
-        return {"trainer": trainer, "hook": hydra_hook, "test_gradient": test_gradient}
+        return super().recreate_trainer_and_hook(test_gradient=test_gradient)
