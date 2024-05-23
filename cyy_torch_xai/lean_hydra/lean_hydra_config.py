@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Callable
 
 import torch.optim
 from cyy_torch_algorithm.retraining import DeterministicTraining
@@ -6,6 +6,7 @@ from cyy_torch_toolbox import (Config, MachineLearningPhase, ModelGradient,
                                Trainer)
 
 from .lean_hydra_sgd_hook import LeanHyDRASGDHook
+from .lean_hydra_hook import LeanHyDRAHook
 
 
 class LeanHyDRAConfig(Config):
@@ -20,7 +21,7 @@ class LeanHyDRAConfig(Config):
             trainer_fun=trainer_fun
         )
 
-    def _create_hook(self, test_gradient: ModelGradient) -> Any:
+    def _create_hook(self, test_gradient: ModelGradient) -> LeanHyDRAHook:
         assert self.deterministic_training.last_trainer is not None
         optimizer = self.deterministic_training.last_trainer.get_optimizer()
         match optimizer:
