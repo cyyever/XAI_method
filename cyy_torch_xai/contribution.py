@@ -14,6 +14,24 @@ class SubsetContribution:
     def values(self) -> dict:
         return self.__values
 
+    @property
+    def normalized_values(self) -> dict:
+        def transform_key(indices: SubsetIndices | None) -> int | str:
+            if indices is None:
+                return "None"
+            if len(indices) != 1:
+                return str(indices)
+            return list(indices)[0]
+
+        data = {
+            transform_key(k): {transform_key(k2): v2 for k2, v2 in v.items()}
+            for k, v in self.values.items()
+        }
+        if len(data) == 1:
+            data = next(iter(data.values()))
+        assert data
+        return data
+
     def set_sample_contribution(
         self, tracked_index: int, value: float, test_index: int | None = None
     ) -> None:
@@ -67,19 +85,4 @@ class SubsetContribution:
         return indices
 
     def dump(self, file) -> None:
-        def transform_key(indices: SubsetIndices | None) -> int | str:
-            if indices is None:
-                return "None"
-            if len(indices) != 1:
-                return str(indices)
-            return list(indices)[0]
-
-        data = {
-            transform_key(k): {transform_key(k2): v2 for k2, v2 in v.items()}
-            for k, v in self.__values.items()
-        }
-        if len(data) == 1:
-            data = next(iter(data.values()))
-        assert data
-
-        json.dump(data, file)
+        json.dump(self.normalized_values, file)

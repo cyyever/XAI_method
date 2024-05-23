@@ -16,6 +16,7 @@ if has_cyy_torch_vision:
         config.hyper_parameter_config.learning_rate = 0.01
         trainer = config.create_trainer()
         trainer.train()
-        compute_representer_point_values(
+        contribution = compute_representer_point_values(
             trainer=trainer, test_indices=[1, 2], training_indices=[1, 2, 3, 4, 5]
         )
+        print(contribution.normalized_values)

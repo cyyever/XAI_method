@@ -1,4 +1,5 @@
 import torch
+import math
 
 from cyy_naive_lib.log import log_error
 from cyy_torch_toolbox import (IndicesType, MachineLearningPhase,
@@ -64,10 +65,13 @@ def compute_representer_point_values(
         sample_indices=training_indices,
     )
     training_features = training_res["output_features"]
+    activation_gradients = training_res["activation_gradients"]
     contribution = SubsetContribution()
     contribution.set_tracked_indices(list(training_features.keys()))
     for test_idx, test_feature in test_features.items():
+        cls_idx = test_output_tensors[test_idx].argmax().item()
         for training_idx, training_feature in training_features.items():
             product = dot_product(test_feature, training_feature)
-            contribution.set_sample_contribution(tracked_index=training_idx, value=product, test_index=test_idx)
+            value = math.fabs((activation_gradients[training_idx] * product)[cls_idx])
+            contribution.set_sample_contribution(tracked_index=training_idx, value=value, test_index=test_idx)
     return contribution
