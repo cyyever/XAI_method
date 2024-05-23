@@ -27,7 +27,7 @@ def __get_output(
         for v in sample_loss.values():
             v.backward(retain_graph=True)
         assert isinstance(inferencer.model_evaluator, OutputGradientEvaluator)
-        res |= {"layer_gradients": inferencer.model_evaluator.layer_output_gradients}
+        res |= {"activation_gradients": inferencer.model_evaluator.activation_gradients}
 
     else:
         inferencer.replace_model_evaluator(
@@ -64,8 +64,6 @@ def compute_representer_point_values(
         sample_indices=training_indices,
     )
     training_features = training_res["output_features"]
-    log_error("aaa %s", len(test_output_tensors))
-    log_error("vvv %s", len(training_features))
     contribution = SubsetContribution()
     contribution.set_tracked_indices(list(training_features.keys()))
     for test_idx, test_feature in test_features.items():

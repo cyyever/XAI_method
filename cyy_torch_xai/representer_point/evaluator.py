@@ -52,7 +52,7 @@ class OutputGradientEvaluator(OutputFeatureModelEvaluator):
         self.__layer_output_tensors = []
 
     @property
-    def layer_output_gradients(self) -> SampleTensors:
+    def activation_gradients(self) -> SampleTensors:
         res = {}
         for a, b in zip(self.__accumulated_sample_indices, self.__layer_output_tensors):
             assert len(a) == b.grad.shape[0]
@@ -62,8 +62,8 @@ class OutputGradientEvaluator(OutputFeatureModelEvaluator):
     def __output_hook_impl(self, module, *args, **kwargs) -> Any:
         output_tensor: torch.Tensor = args[0][0]
         assert output_tensor.shape[0] == len(self._sample_indices)
-        assert output_tensor.grad is None
         output_tensor.retain_grad()
+        assert output_tensor.grad is None
         self.__accumulated_sample_indices.append(self._sample_indices)
         self.__layer_output_tensors.append(output_tensor)
         return None
