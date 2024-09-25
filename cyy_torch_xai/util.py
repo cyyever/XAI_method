@@ -1,5 +1,4 @@
-from cyy_torch_toolbox import MachineLearningPhase, Trainer
-from cyy_torch_toolbox.typing import ModelGradient
+from cyy_torch_toolbox import MachineLearningPhase, ModelGradient, Trainer
 
 
 def get_test_gradient(trainer: Trainer) -> ModelGradient:
