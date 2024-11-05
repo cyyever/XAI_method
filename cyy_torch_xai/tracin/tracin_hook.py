@@ -8,7 +8,6 @@ from .base_hook import TracInBaseHook
 
 
 class TracInHook(TracInBaseHook):
-
     def _after_batch(self, batch_size: int, **kwargs) -> None:
         optimizer = self._get_optimizer(**kwargs)
         assert len(optimizer.param_groups) == 1

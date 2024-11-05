@@ -101,7 +101,8 @@ def stochastic_inverse_hessian_vector_product(
                     )
             hook.reset_result()
             max_diff = max(
-                __vector_diff(a, b) for a, b in zip(cur_products, next_products, strict=False)
+                __vector_diff(a, b)
+                for a, b in zip(cur_products, next_products, strict=False)
             )
             get_logger().info(
                 "max diff is %s, epsilon is %s, epoch is %s, iteration is %s, max_iteration is %s, scale %s",

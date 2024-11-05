@@ -36,5 +36,7 @@ def compute_relatif_values(
     return {
         idx: dot_product(product, test_gradient)
         / torch.linalg.vector_norm(cat_tensor_dict(product)).item()
-        for idx, product in zip(sorted(training_sample_gradients.keys()), products, strict=False)
+        for idx, product in zip(
+            sorted(training_sample_gradients.keys()), products, strict=False
+        )
     }

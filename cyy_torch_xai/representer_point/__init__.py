@@ -1,7 +1,6 @@
 import math
 
 import torch
-from cyy_naive_lib.log import log_error
 from cyy_torch_toolbox import (
     EvaluationMode,
     IndicesType,
@@ -32,7 +31,9 @@ def __get_output(
         inferencer.replace_model_evaluator(
             lambda model_evaluator: OutputGradientEvaluator(evaluator=model_evaluator)
         )
-        sample_loss = inferencer.get_sample_loss(evaluation_mode=EvaluationMode.Test)
+        sample_loss = inferencer.get_sample_loss(
+            evaluation_mode=EvaluationMode.TestWithGrad
+        )
         assert sample_loss
         for v in sample_loss.values():
             v.backward(retain_graph=True)
@@ -82,5 +83,7 @@ def compute_representer_point_values(
         for training_idx, training_feature in training_features.items():
             product = dot_product(test_feature, training_feature)
             value = math.fabs((activation_gradients[training_idx] * product)[cls_idx])
-            contribution.set_sample_contribution(tracked_index=training_idx, value=value, test_index=test_idx)
+            contribution.set_sample_contribution(
+                tracked_index=training_idx, value=value, test_index=test_idx
+            )
     return contribution

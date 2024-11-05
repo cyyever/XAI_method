@@ -38,7 +38,9 @@ class OutputFeatureModelEvaluator(ModelEvaluatorWrapper):
     def __feature_hook_impl(self, module, *args, **kwargs) -> Any:
         input_tensor: torch.Tensor = args[0][0]
         assert input_tensor.shape[0] == len(self._sample_indices)
-        self.__output_features |= dict(zip(self._sample_indices, input_tensor.clone(), strict=False))
+        self.__output_features |= dict(
+            zip(self._sample_indices, input_tensor.clone(), strict=False)
+        )
         return None
 
 
@@ -54,7 +56,9 @@ class OutputGradientEvaluator(OutputFeatureModelEvaluator):
     @property
     def activation_gradients(self) -> SampleTensors:
         res = {}
-        for a, b in zip(self.__accumulated_sample_indices, self.__layer_output_tensors, strict=False):
+        for a, b in zip(
+            self.__accumulated_sample_indices, self.__layer_output_tensors, strict=False
+        ):
             assert len(a) == b.grad.shape[0]
             res |= dict(zip(a, b.grad, strict=False))
         return res
@@ -62,8 +66,9 @@ class OutputGradientEvaluator(OutputFeatureModelEvaluator):
     def __output_hook_impl(self, module, *args, **kwargs) -> Any:
         output_tensor: torch.Tensor = args[0][0]
         assert output_tensor.shape[0] == len(self._sample_indices)
-        output_tensor.retain_grad()
         assert output_tensor.grad is None
+        output_tensor.requires_grad_()
+        output_tensor.retain_grad()
         self.__accumulated_sample_indices.append(self._sample_indices)
         self.__layer_output_tensors.append(output_tensor)
         return None
@@ -73,7 +78,9 @@ class OutputModelEvaluator(OutputFeatureModelEvaluator):
     def __init__(self, evaluator: ModelEvaluator) -> None:
         super().__init__(evaluator=evaluator)
         self.__output_tensors: SampleTensors = {}
-        last_module = list(reversed(list(self.evaluator.model_util.get_modules())))[0][1]
+        last_module = list(reversed(list(self.evaluator.model_util.get_modules())))[0][
+            1
+        ]
         print(last_module)
         last_module.register_forward_hook(
             hook=self.__output_hook_impl, with_kwargs=True
@@ -86,5 +93,7 @@ class OutputModelEvaluator(OutputFeatureModelEvaluator):
     def __output_hook_impl(self, module, *args, **kwargs) -> Any:
         input_tensor: torch.Tensor = args[0][0]
         assert input_tensor.shape[0] == len(self._sample_indices)
-        self.__output_tensors |= dict(zip(self._sample_indices, input_tensor.clone(), strict=False))
+        self.__output_tensors |= dict(
+            zip(self._sample_indices, input_tensor.clone(), strict=False)
+        )
         return None

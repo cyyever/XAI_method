@@ -1,4 +1,3 @@
-
 import torch.optim
 from cyy_torch_toolbox import MachineLearningPhase, ModelGradient
 
@@ -8,7 +7,6 @@ from .lean_hydra_sgd_hook import LeanHyDRASGDHook
 
 
 class LeanHyDRAConfig(DeterministicTrainingConfig):
-
     def _create_hook(self, test_gradient: ModelGradient) -> LeanHyDRAHook:
         assert self.deterministic_training.last_trainer is not None
         optimizer = self.deterministic_training.last_trainer.get_optimizer()
@@ -21,7 +19,9 @@ class LeanHyDRAConfig(DeterministicTrainingConfig):
                 raise NotImplementedError(f"Unsupported optimizer {type(optimizer)}")
         return hydra_hook
 
-    def recreate_trainer_and_hook(self, test_gradient: None | ModelGradient = None) -> dict:
+    def recreate_trainer_and_hook(
+        self, test_gradient: None | ModelGradient = None
+    ) -> dict:
         if test_gradient is None:
             tester = self.deterministic_training.last_trainer.get_inferencer(
                 phase=MachineLearningPhase.Test, deepcopy_model=False
