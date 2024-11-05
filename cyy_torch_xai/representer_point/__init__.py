@@ -31,9 +31,7 @@ def __get_output(
         inferencer.replace_model_evaluator(
             lambda model_evaluator: OutputGradientEvaluator(evaluator=model_evaluator)
         )
-        sample_loss = inferencer.get_sample_loss(
-            evaluation_mode=EvaluationMode.TestWithGrad
-        )
+        sample_loss = inferencer.get_sample_loss(evaluation_mode=EvaluationMode.Test)
         assert sample_loss
         for v in sample_loss.values():
             v.backward(retain_graph=True)
