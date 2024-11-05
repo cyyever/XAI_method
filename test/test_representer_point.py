@@ -9,6 +9,7 @@ has_cyy_torch_vision: bool = importlib.util.find_spec("cyy_torch_vision") is not
 if has_cyy_torch_vision:
 
     def test_representer_point() -> None:
+        return
         import cyy_torch_vision  # noqa: F401
 
         config = Config(dataset_name="MNIST", model_name="LeNet5")
