@@ -1,11 +1,18 @@
 from cyy_naive_lib.algorithm.mapping_op import get_mapping_values_by_key_order
 from cyy_torch_algorithm.computation.sample_gradient import (
-    get_sample_gradients, get_sample_gvps, get_self_gvps)
-from cyy_torch_toolbox import (IndicesType, MachineLearningPhase,
-                               ModelGradient, OptionalIndicesType, Trainer)
+    get_sample_gradients,
+    get_sample_gvps,
+    get_self_gvps,
+)
+from cyy_torch_toolbox import (
+    IndicesType,
+    MachineLearningPhase,
+    ModelGradient,
+    OptionalIndicesType,
+    Trainer,
+)
 
-from .inverse_hessian_vector_product import \
-    stochastic_inverse_hessian_vector_product
+from .inverse_hessian_vector_product import stochastic_inverse_hessian_vector_product
 from .typing import SampleContributions
 from .util import get_test_gradient
 
@@ -48,7 +55,7 @@ def compute_self_influence_function_values(
 
     gvps = get_self_gvps(
         inferencer=inferencer,
-        vectors=dict(zip(sorted(computed_indices), products)),
+        vectors=dict(zip(sorted(computed_indices), products, strict=False)),
     )
 
     return {idx: product / trainer.dataset_size for idx, product in gvps.items()}

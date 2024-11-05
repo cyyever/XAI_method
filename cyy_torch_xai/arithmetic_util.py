@@ -21,10 +21,7 @@ def optional_addition(*args: OptionalTensor) -> OptionalTensor:
     for a in args:
         if a is None:
             continue
-        if res is None:
-            res = a
-        else:
-            res = res + a
+        res = a if res is None else res + a
     return res
 
 

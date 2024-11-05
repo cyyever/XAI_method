@@ -51,7 +51,7 @@ class LeanHyDRAHook(BaseHook):
 
         with open(
             os.path.join(save_dir, "lean_hydra_contribution.json"),
-            mode="wt",
+            mode="w",
             encoding="utf-8",
         ) as f:
             json.dump(self.contribution_dict, f)

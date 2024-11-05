@@ -1,13 +1,22 @@
-import torch
 import math
 
+import torch
 from cyy_naive_lib.log import log_error
-from cyy_torch_toolbox import (IndicesType, MachineLearningPhase,
-                               OptionalIndicesType, Trainer, EvaluationMode)
-
+from cyy_torch_toolbox import (
+    EvaluationMode,
+    IndicesType,
+    MachineLearningPhase,
+    OptionalIndicesType,
+    Trainer,
+)
 from cyy_torch_toolbox.tensor import dot_product
-from .evaluator import OutputFeatureModelEvaluator, OutputModelEvaluator, OutputGradientEvaluator
+
 from ..contribution import SubsetContribution
+from .evaluator import (
+    OutputFeatureModelEvaluator,
+    OutputGradientEvaluator,
+    OutputModelEvaluator,
+)
 
 
 def __get_output(

@@ -1,9 +1,12 @@
 # from cyy_naive_lib.log import get_logger
 # from cyy_naive_lib.time_counter import TimeCounter
 from cyy_torch_toolbox import cat_tensors_to_vector
-from cyy_torch_xai.arithmetic_util import (optional_addition,
-                                           optional_multiplication,
-                                           optional_subtraction)
+
+from cyy_torch_xai.arithmetic_util import (
+    optional_addition,
+    optional_multiplication,
+    optional_subtraction,
+)
 
 from .lean_hydra_hook import LeanHyDRAHook
 
@@ -36,10 +39,10 @@ class LeanHyDRAAdamHook(LeanHyDRAHook):
         )
 
         self.__first_average = cat_tensors_to_vector(
-            (optimizer.state[p]["exp_avg"] for p in parameter_seq)
+            optimizer.state[p]["exp_avg"] for p in parameter_seq
         )
         self.__second_average = cat_tensors_to_vector(
-            (optimizer.state[p]["exp_avg_sq"] for p in parameter_seq)
+            optimizer.state[p]["exp_avg_sq"] for p in parameter_seq
         )
         # TODO fix mean
         corrected_first_average = self.__first_average / (1 - (beta1**step))

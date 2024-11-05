@@ -1,7 +1,8 @@
-from typing import Callable, Any
+from collections.abc import Callable
+from typing import Any
 
 from cyy_torch_algorithm.retraining import DeterministicTraining
-from cyy_torch_toolbox import (Config, Trainer)
+from cyy_torch_toolbox import Config, Trainer
 
 
 class DeterministicTrainingConfig(Config):

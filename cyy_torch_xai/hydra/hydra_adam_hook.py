@@ -3,8 +3,11 @@ import math
 import torch
 from cyy_torch_toolbox import cat_tensors_to_vector
 
-from ..arithmetic_util import (optional_addition, optional_division,
-                               optional_multiplication)
+from ..arithmetic_util import (
+    optional_addition,
+    optional_division,
+    optional_multiplication,
+)
 from .hydra_hook import HyDRAHook
 
 
@@ -62,10 +65,10 @@ class HyDRAAdamHook(HyDRAHook):
         assert parameter_seq[0] in optimizer.state
         self.__step = optimizer.state[parameter_seq[0]]["step"]
         first_average = cat_tensors_to_vector(
-            (optimizer.state[p]["exp_avg"].detach() for p in parameter_seq)
+            optimizer.state[p]["exp_avg"].detach() for p in parameter_seq
         )
         second_average = cat_tensors_to_vector(
-            (optimizer.state[p]["exp_avg_sq"].detach() for p in parameter_seq)
+            optimizer.state[p]["exp_avg_sq"].detach() for p in parameter_seq
         )
         self.__corrected_first_average = first_average / (
             1 - (self.__beta1**self.__step)

@@ -1,14 +1,16 @@
 import torch
 import torch.linalg
 from cyy_naive_lib.algorithm.mapping_op import get_mapping_values_by_key_order
-from cyy_torch_algorithm.computation.sample_gradient import \
-    get_sample_gradients
-from cyy_torch_toolbox import (MachineLearningPhase, ModelGradient,
-                               OptionalIndicesType, Trainer)
+from cyy_torch_algorithm.computation.sample_gradient import get_sample_gradients
+from cyy_torch_toolbox import (
+    MachineLearningPhase,
+    ModelGradient,
+    OptionalIndicesType,
+    Trainer,
+)
 from cyy_torch_toolbox.tensor import cat_tensor_dict, dot_product
 
-from .inverse_hessian_vector_product import \
-    stochastic_inverse_hessian_vector_product
+from .inverse_hessian_vector_product import stochastic_inverse_hessian_vector_product
 from .typing import SampleContributions
 from .util import get_test_gradient
 
@@ -34,5 +36,5 @@ def compute_relatif_values(
     return {
         idx: dot_product(product, test_gradient)
         / torch.linalg.vector_norm(cat_tensor_dict(product)).item()
-        for idx, product in zip(sorted(training_sample_gradients.keys()), products)
+        for idx, product in zip(sorted(training_sample_gradients.keys()), products, strict=False)
     }

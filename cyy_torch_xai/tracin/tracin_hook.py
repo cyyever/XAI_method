@@ -36,7 +36,7 @@ class TracInHook(TracInBaseHook):
                 executor.save_dir,
                 "tracin.json",
             ),
-            mode="wt",
+            mode="w",
             encoding="utf-8",
         ) as f:
             self._contribution.dump(f)

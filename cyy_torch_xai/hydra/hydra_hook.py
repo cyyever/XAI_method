@@ -8,10 +8,14 @@ import torch
 from cyy_naive_lib.algorithm.sequence_op import split_list_to_chunks
 from cyy_naive_lib.log import get_logger
 from cyy_naive_lib.time_counter import TimeCounter
-from cyy_torch_algorithm.data_structure.synced_tensor_dict import \
-    SyncedTensorDict
-from cyy_torch_toolbox import (ExecutorHookPoint, OptionalTensor, Trainer,
-                               cat_tensor_dict, tensor_to)
+from cyy_torch_algorithm.data_structure.synced_tensor_dict import SyncedTensorDict
+from cyy_torch_toolbox import (
+    ExecutorHookPoint,
+    OptionalTensor,
+    Trainer,
+    cat_tensor_dict,
+    tensor_to,
+)
 
 from ..util import get_test_gradient
 from .base_hook import BaseHook
@@ -31,7 +35,7 @@ class HyDRAHook(BaseHook):
         self.__hvp_arguments: dict = {}
         self.use_approximation = False
 
-        use_approximation: None | bool = kwargs.get("use_approximation", None)
+        use_approximation: None | bool = kwargs.get("use_approximation")
         if use_approximation is None:
             self.use_approximation = not self.use_hessian
         else:
@@ -83,7 +87,7 @@ class HyDRAHook(BaseHook):
         with open(
             os.path.join(self.__get_save_dir(trainer), "tracking_indices.json"),
             encoding="utf8",
-            mode="wt",
+            mode="w",
         ) as f:
             json.dump(list(self.computed_indices), f)
         if self.use_hessian:
@@ -243,7 +247,7 @@ class HyDRAHook(BaseHook):
             json_name = "approx_hydra_contribution.json"
         with open(
             os.path.join(self.__get_save_dir(trainer), json_name),
-            mode="wt",
+            mode="w",
             encoding="utf-8",
         ) as f:
             json.dump(contribution, f)

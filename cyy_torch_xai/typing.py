@@ -1,4 +1,3 @@
-from typing import TypeAlias
 
-SampleContributions: TypeAlias = dict[int, float]
-SubsetIndices: TypeAlias = frozenset[int]
+type SampleContributions = dict[int, float]
+type SubsetIndices = frozenset[int]

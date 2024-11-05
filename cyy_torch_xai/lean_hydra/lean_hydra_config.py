@@ -1,10 +1,10 @@
 
 import torch.optim
-from cyy_torch_toolbox import (MachineLearningPhase, ModelGradient)
+from cyy_torch_toolbox import MachineLearningPhase, ModelGradient
 
-from .lean_hydra_sgd_hook import LeanHyDRASGDHook
-from .lean_hydra_hook import LeanHyDRAHook
 from ..config import DeterministicTrainingConfig
+from .lean_hydra_hook import LeanHyDRAHook
+from .lean_hydra_sgd_hook import LeanHyDRASGDHook
 
 
 class LeanHyDRAConfig(DeterministicTrainingConfig):

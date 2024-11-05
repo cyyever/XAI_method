@@ -1,8 +1,13 @@
 from typing import Any
 
 import torch
-from cyy_torch_toolbox import (ExecutorHookPoint, HookCollection, IndicesType,
-                               ModelEvaluator, ModelGradient)
+from cyy_torch_toolbox import (
+    ExecutorHookPoint,
+    HookCollection,
+    IndicesType,
+    ModelEvaluator,
+    ModelGradient,
+)
 
 from ..typing import SampleContributions
 from .lean_hydra_sgd_hook import LeanHyDRASGDHook
