@@ -6,7 +6,7 @@ from typing import Any
 
 import torch
 from cyy_naive_lib.algorithm.sequence_op import split_list_to_chunks
-from cyy_naive_lib.log import get_logger
+from cyy_naive_lib.log import log_debug, log_error, log_info
 from cyy_naive_lib.time_counter import TimeCounter
 from cyy_torch_algorithm.data_structure.synced_tensor_dict import SyncedTensorDict
 from cyy_torch_toolbox import (
@@ -91,7 +91,7 @@ class HyDRAHook(BaseHook):
         ) as f:
             json.dump(list(self.computed_indices), f)
         if self.use_hessian:
-            get_logger().info("use hessian to compute hyper-gradients")
+            log_info("use hessian to compute hyper-gradients")
             self._hessian_hyper_gradient_dict = HyDRAHook.create_hypergradient_dict(
                 cache_size=self._cache_size,
                 storage_dir=os.path.join(
@@ -99,7 +99,7 @@ class HyDRAHook(BaseHook):
                     "hessian_hyper_gradient_dir",
                 ),
             )
-            get_logger().debug(
+            log_debug(
                 "use hessian_hyper_gradient_mom_dir:%s",
                 os.path.abspath(self._hessian_hyper_gradient_dict.get_storage_dir()),
             )
@@ -111,7 +111,7 @@ class HyDRAHook(BaseHook):
                     "approximation_hyper_gradient_dir",
                 ),
             )
-            get_logger().info(
+            log_info(
                 "use approx dict:%s",
                 os.path.abspath(self._approx_hyper_gradient_dict.get_storage_dir()),
             )
@@ -124,7 +124,7 @@ class HyDRAHook(BaseHook):
             )
 
     def _after_execute(self, **kwargs):
-        get_logger().info("end hyper-gradient tracking")
+        log_info("end hyper-gradient tracking")
         trainer = kwargs["executor"]
         trainer.remove_named_hook(name="prepare_hook")
         if self.use_approximation:
@@ -153,7 +153,9 @@ class HyDRAHook(BaseHook):
 
     def __prepare_hook(self, sample_indices: list[torch.Tensor], **kwargs: Any) -> None:
         if self.use_approximation:
-            instance_indices: set[int] = {idx.data.item() for idx in sample_indices}
+            instance_indices: set[int] = {
+                int(idx.data.item()) for idx in sample_indices
+            }
             batch_gradient_indices: set[int] = instance_indices & self.computed_indices
             if batch_gradient_indices:
                 self._get_hyper_gradient_dict(self.use_approximation).prefetch(
@@ -195,9 +197,7 @@ class HyDRAHook(BaseHook):
             for chunk in split_list_to_chunks(delayed_keys, self._cache_size):
                 self._get_hyper_gradient_dict(True).prefetch(chunk)
                 for k in chunk:
-                    get_logger().debug(
-                        "do _delayed_approximation_computations for %s", k
-                    )
+                    log_debug("do _delayed_approximation_computations for %s", k)
                     self._do_delayed_computation(True, k)
             return
 
@@ -219,20 +219,20 @@ class HyDRAHook(BaseHook):
         if tensor is None:
             return
         if torch.any(torch.isnan(tensor)):
-            get_logger().error("find nan tensor %s", tensor.cpu())
-            get_logger().error("traceback:%s", str(traceback.extract_stack(limit=10)))
+            log_error("find nan tensor %s", tensor.cpu())
+            log_error("traceback:%s", str(traceback.extract_stack(limit=10)))
             raise AssertionError()
         if torch.any(torch.isinf(tensor)):
-            get_logger().error("find inf tensor %s", tensor.cpu())
-            get_logger().error("traceback:%s", str(traceback.extract_stack(limit=10)))
+            log_error("find inf tensor %s", tensor.cpu())
+            log_error("traceback:%s", str(traceback.extract_stack(limit=10)))
             raise AssertionError()
 
     def __save_hyper_gradients(self, trainer, use_approximation):
         test_gradient = get_test_gradient(trainer)
         contribution = {}
-        get_logger().info("begin do _do_all_delayed_computation")
+        log_info("begin do _do_all_delayed_computation")
         self._do_all_delayed_computation()
-        get_logger().info("end do _do_all_delayed_computation")
+        log_info("end do _do_all_delayed_computation")
         tensor_dict = self._get_hyper_gradient_dict(use_approximation)
         test_gradient = tensor_to(cat_tensor_dict(test_gradient), device="cpu")
         for index, value in tensor_dict.items():

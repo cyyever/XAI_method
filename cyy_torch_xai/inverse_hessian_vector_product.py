@@ -3,7 +3,7 @@ import functools
 import math
 
 import torch
-from cyy_naive_lib.log import get_logger
+from cyy_naive_lib.log import log_debug, log_info
 from cyy_torch_algorithm.computation.batch_hvp.batch_hvp_hook import BatchHVPHook
 from cyy_torch_toolbox import (
     ExecutorHookPoint,
@@ -57,7 +57,7 @@ def stochastic_inverse_hessian_vector_product(
         max_iteration = int(default_inverse_hvp_arguments["max_iteration"])
     if repeated_num is None:
         repeated_num = int(default_inverse_hvp_arguments["repeated_num"])
-    get_logger().info(
+    log_info(
         "repeated_num is %s,max_iteration is %s,dampling term is %s,scale is %s,epsilon is %s",
         repeated_num,
         max_iteration,
@@ -88,6 +88,7 @@ def stochastic_inverse_hessian_vector_product(
             nonlocal hook
             nonlocal max_iteration
             nonlocal repeated_num
+            assert max_iteration is not None
             assert len(hook.result_dict) == len(vectors)
 
             next_products: list = []
@@ -104,7 +105,7 @@ def stochastic_inverse_hessian_vector_product(
                 __vector_diff(a, b)
                 for a, b in zip(cur_products, next_products, strict=False)
             )
-            get_logger().info(
+            log_info(
                 "max diff is %s, epsilon is %s, epoch is %s, iteration is %s, max_iteration is %s, scale %s",
                 max_diff,
                 epsilon,
@@ -130,9 +131,7 @@ def stochastic_inverse_hessian_vector_product(
         )
         epoch = 1
         while results is None:
-            get_logger().debug(
-                "stochastic_inverse_hessian_vector_product epoch is %s", epoch
-            )
+            log_debug("stochastic_inverse_hessian_vector_product epoch is %s", epoch)
             normal_stop = tmp_inferencer.inference()
             if not normal_stop:
                 break
@@ -159,5 +158,5 @@ def stochastic_inverse_hessian_vector_product(
         for k, v in product:
             std, mean = torch.std_mean(v, dim=0)
             product[k] = mean
-            get_logger().info("std is %s", torch.linalg.vector_norm(std))
+            log_info("std is %s", torch.linalg.vector_norm(std))
     return tmp

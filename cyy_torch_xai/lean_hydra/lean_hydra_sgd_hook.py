@@ -1,6 +1,6 @@
 from typing import Any
 
-from cyy_naive_lib.log import get_logger
+from cyy_naive_lib.log import log_debug
 from cyy_naive_lib.time_counter import TimeCounter
 from cyy_torch_toolbox import OptionalTensor
 
@@ -33,7 +33,7 @@ class LeanHyDRASGDHook(LeanHyDRAHook):
         self._sample_gradient_hook.reset_result()
         assert id(self._contribution_tensor) != id(self.__mom_product)
         self._contribution_tensor -= lr * self.__mom_product
-        get_logger().debug(
+        log_debug(
             "batch use time %s ms",
             counter.elapsed_milliseconds(),
         )

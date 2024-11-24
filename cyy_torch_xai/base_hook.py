@@ -1,7 +1,7 @@
 from typing import Any
 
 import torch
-from cyy_naive_lib.log import get_logger
+from cyy_naive_lib.log import log_info
 from cyy_torch_algorithm.computation import SampleGradientHook
 from cyy_torch_toolbox import Hook, IndicesType, ModelUtil, Trainer
 
@@ -40,7 +40,7 @@ class SampleXAIHook(Hook):
         if not self.__has_tracked_samples:
             self.set_computed_indices(range(self.training_set_size))
         else:
-            get_logger().info("only compute %s indices", len(self.computed_indices))
+            log_info("only compute %s indices", len(self.computed_indices))
         self._contribution.clear_contributions()
 
 
