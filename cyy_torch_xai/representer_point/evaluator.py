@@ -13,7 +13,7 @@ class OutputFeatureModelEvaluator(Decorator):
         self._sample_indices: list = []
         self.__output_features: SampleTensors = {}
         self.last_module = self.model_util.get_last_underlying_module()
-        assert isinstance(self._decorator_object, torch.nn.Linear)
+        assert isinstance(self.last_module, torch.nn.Linear)
         self.last_module.register_forward_pre_hook(
             hook=self.__feature_hook_impl, with_kwargs=True
         )
@@ -70,9 +70,7 @@ class OutputModelEvaluator(OutputFeatureModelEvaluator):
     def __init__(self, evaluator: ModelEvaluator) -> None:
         super().__init__(evaluator=evaluator)
         self.__output_tensors: SampleTensors = {}
-        last_module = list(reversed(list(self.evaluator.model_util.get_modules())))[0][
-            1
-        ]
+        last_module = list(reversed(list(self.model_util.get_modules())))[0][1]
         print(last_module)
         last_module.register_forward_hook(
             hook=self.__output_hook_impl, with_kwargs=True
