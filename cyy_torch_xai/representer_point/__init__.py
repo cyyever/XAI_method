@@ -79,6 +79,8 @@ def compute_representer_point_values(
     for test_idx, test_feature in test_features.items():
         cls_idx = test_output_tensors[test_idx].argmax().item()
         for training_idx, training_feature in training_features.items():
+            if training_indices:
+                assert training_idx in training_indices
             product = dot_product(test_feature, training_feature)
             value = math.fabs((activation_gradients[training_idx] * product)[cls_idx])
             contribution.set_sample_contribution(
