@@ -58,7 +58,6 @@ class OutputGradientEvaluator(OutputFeatureModelEvaluator):
     def __output_hook_impl(self, module, *args: Any, **kwargs: Any) -> Any:
         output_tensor: torch.Tensor = args[0][0]
         assert output_tensor.shape[0] == len(self._sample_indices)
-        assert output_tensor.grad is None
         output_tensor.requires_grad_()
         output_tensor.retain_grad()
         self.__accumulated_sample_indices.append(self._sample_indices)
