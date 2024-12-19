@@ -1,6 +1,6 @@
 import os
-import cyy_torch_vision  # noqa: F401
 
+import cyy_torch_vision  # noqa: F401
 from cyy_torch_toolbox import IterationUnit
 from cyy_torch_toolbox.config import Config
 from cyy_torch_xai.tracin import TracInHook
