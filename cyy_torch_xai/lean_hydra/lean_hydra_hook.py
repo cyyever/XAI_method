@@ -3,8 +3,8 @@ import os
 from typing import Any
 
 import torch
-from cyy_torch_algorithm.computation import dot_product
 from cyy_torch_toolbox import ModelGradient, OptionalTensor, tensor_to
+from cyy_torch_toolbox.tensor import dot_product
 
 from ..hydra.base_hook import BaseHook
 from ..typing import SampleContributions
