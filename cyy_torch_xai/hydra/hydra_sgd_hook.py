@@ -12,8 +12,8 @@ class HyDRASGDHook(HyDRAHook):
     __lr: float | None = None
     __weight_decay: float | None = None
 
-    def _before_batch(self, **kwargs: Any) -> None:
-        super()._before_batch(**kwargs)
+    def _before_batch(self, *args: Any, **kwargs: Any) -> None:
+        super()._before_batch(*args, **kwargs)
         optimizer = self._get_optimizer(**kwargs)
         assert len(optimizer.param_groups) == 1
 

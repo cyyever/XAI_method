@@ -28,7 +28,8 @@ class TracInHook(TracInBaseHook):
                 )
         self._sample_gradient_hook.reset_result()
 
-    def _after_execute(self, executor, **kwargs: Any) -> None:
+    def _after_execute(self, **kwargs: Any) -> None:
+        executor = kwargs["executor"]
         os.makedirs(executor.save_dir, exist_ok=True)
         with open(
             os.path.join(
@@ -39,4 +40,4 @@ class TracInHook(TracInBaseHook):
             encoding="utf-8",
         ) as f:
             self._contribution.dump(f)
-        super()._after_execute(executor=executor, **kwargs)
+        super()._after_execute(**kwargs)
