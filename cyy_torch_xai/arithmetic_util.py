@@ -5,7 +5,7 @@ from cyy_naive_lib.log import log_error
 from cyy_torch_toolbox import OptionalTensor
 
 
-def check_overflow_and_underflow(tensor: torch.Tensor) -> None:
+def check_overflow_and_underflow(tensor: OptionalTensor) -> None:
     if tensor is None:
         return
     if torch.any(torch.isnan(tensor)):
