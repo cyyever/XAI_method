@@ -1,5 +1,5 @@
 import torch.optim
-from cyy_torch_toolbox import Config, MachineLearningPhase
+from cyy_torch_toolbox import Config, MachineLearningPhase, Trainer, Hook
 from cyy_torch_toolbox.dataset.sampler import DatasetSampler
 
 from .hydra_adam_hook import HyDRAAdamHook
@@ -14,7 +14,7 @@ class HyDRAConfig(Config):
         self.use_hessian: bool = False
         self.use_approximation: bool = True
 
-    def create_trainer(self, **kwargs) -> dict:
+    def create_trainer(self, **kwargs) -> tuple[Trainer, Hook]:
         trainer = super().create_trainer(**kwargs)
 
         optimizer = trainer.get_optimizer()
@@ -42,4 +42,4 @@ class HyDRAConfig(Config):
                 )
             ).iid_sample_indices(self.tracking_percentage)
             hydra_hook.set_computed_indices(subset)
-        return {"trainer": trainer, "hook": hydra_hook}
+        return trainer, hydra_hook

@@ -9,6 +9,10 @@ from .lean_hydra_sgd_hook import LeanHyDRASGDHook
 
 
 class LeanHyDRAConfig(DeterministicTrainingConfig):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.tracking_percentage: float | None = None
+
     def _create_hook(self, **hook_kwargs: Any) -> LeanHyDRAHook:
         assert self.deterministic_training.last_trainer is not None
         optimizer = self.deterministic_training.last_trainer.get_optimizer()
