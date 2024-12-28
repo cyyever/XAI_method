@@ -2,7 +2,7 @@ from collections.abc import Callable
 from typing import Any
 
 from cyy_torch_algorithm.retraining import DeterministicTraining
-from cyy_torch_toolbox import Config, Trainer
+from cyy_torch_toolbox import Config, Hook, Trainer
 
 
 class DeterministicTrainingConfig(Config):
@@ -17,12 +17,12 @@ class DeterministicTrainingConfig(Config):
             trainer_fun=trainer_fun
         )
 
-    def _create_hook(self, **hook_kwargs: Any) -> Any:
+    def _create_hook(self, **hook_kwargs: Any) -> Hook:
         raise NotImplementedError()
 
-    def recreate_trainer_and_hook(self, **hook_kwargs: Any) -> dict:
+    def recreate_trainer_and_hook(self, **hook_kwargs: Any) -> tuple[Trainer, Hook]:
         assert self.deterministic_training.last_trainer is not None
         hydra_hook = self._create_hook(**hook_kwargs)
         trainer = self.deterministic_training.recreate_trainer()
-        trainer.append_hook(hydra_hook)
-        return {"trainer": trainer, "hook": hydra_hook}
+        trainer.append_hook(hook=hydra_hook)
+        return trainer, hydra_hook
