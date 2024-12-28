@@ -1,5 +1,5 @@
 import torch.optim
-from cyy_torch_toolbox import Config, MachineLearningPhase, Trainer, Hook
+from cyy_torch_toolbox import Config, Hook, MachineLearningPhase, Trainer
 from cyy_torch_toolbox.dataset.sampler import DatasetSampler
 
 from .hydra_adam_hook import HyDRAAdamHook

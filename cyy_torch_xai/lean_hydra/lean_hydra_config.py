@@ -2,6 +2,7 @@ from typing import Any
 
 import torch.optim
 from cyy_torch_toolbox import MachineLearningPhase
+from cyy_torch_toolbox.dataset.sampler import DatasetSampler
 
 from ..config import DeterministicTrainingConfig
 from .lean_hydra_hook import LeanHyDRAHook
@@ -31,4 +32,11 @@ class LeanHyDRAConfig(DeterministicTrainingConfig):
                 )
             case _:
                 raise NotImplementedError(f"Unsupported optimizer {type(optimizer)}")
+        if self.tracking_percentage is not None:
+            subset = DatasetSampler(
+                self.deterministic_training.last_trainer.dataset_collection.get_dataset_util(
+                    phase=MachineLearningPhase.Training
+                )
+            ).iid_sample_indices(self.tracking_percentage)
+            hydra_hook.set_computed_indices(subset)
         return hydra_hook
