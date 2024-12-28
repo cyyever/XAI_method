@@ -14,8 +14,8 @@ class HyDRAConfig(Config):
         self.use_hessian: bool = False
         self.use_approximation: bool = True
 
-    def create_trainer(self, **kwargs) -> tuple[Trainer, Hook]:
-        trainer = super().create_trainer(**kwargs)
+    def create_trainer_and_hook(self, **kwargs) -> tuple[Trainer, Hook]:
+        trainer = self.create_trainer(**kwargs)
 
         optimizer = trainer.get_optimizer()
         if isinstance(optimizer, torch.optim.SGD):
