@@ -67,3 +67,4 @@ class SampleGradientXAIHook(SampleXAIHook):
 
     def _after_execute(self, **kwargs: Any) -> None:
         self._sample_gradient_hook.release()
+        super()._after_execute(**kwargs)
